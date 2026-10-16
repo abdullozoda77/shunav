@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+import re
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 Language = Literal['tg', 'ru', 'en']
 LicenseType = Literal['public_domain', 'licensed', 'creative_commons']
@@ -11,13 +13,38 @@ class ORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Auth / users
 class UserCreate(BaseModel):
-    name: str = Field(min_length=1)
-    username: str = Field(min_length=3)
+    name: str
+    username: str
     email: EmailStr
-    password: str = Field(min_length=6)
+    password: str
     preferred_language: Language = 'tg'
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, value):
+        if len(value.strip()) < 2:
+            raise ValueError('Name must be at least 2 characters')
+        return value.strip()
+
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, value):
+        value = value.strip().lower()
+        if len(value) < 3:
+            raise ValueError('Username must be at least 3 characters')
+        if not re.fullmatch(r'[a-z0-9_]+', value):
+            raise ValueError('Username may have only latin letters, digits and _')
+        return value
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value):
+        if len(value) < 6:
+            raise ValueError('Password must be at least 6 characters')
+        if value.isdigit():
+            raise ValueError('Password must not be only digits')
+        return value
 
 
 class UserUpdate(BaseModel):
@@ -46,12 +73,31 @@ class TokenSchema(BaseModel):
     token_type: str
 
 
-# Authors, categories, narrators
 class AuthorCreate(BaseModel):
-    name: str = Field(min_length=1)
+    name: str
     bio: str | None = None
     birth_year: int | None = None
     death_year: int | None = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, value):
+        if len(value.strip()) < 2:
+            raise ValueError('Name must be at least 2 characters')
+        return value.strip()
+
+    @field_validator('birth_year', 'death_year')
+    @classmethod
+    def validate_year(cls, value):
+        if value is not None and (value < 0 or value > datetime.now().year):
+            raise ValueError(f'Year must be between 0 and {datetime.now().year}')
+        return value
+
+    @model_validator(mode='after')
+    def validate_years(self):
+        if self.birth_year and self.death_year and self.death_year < self.birth_year:
+            raise ValueError('Death year must be after birth year')
+        return self
 
 
 class AuthorRead(ORMModel, AuthorCreate):
@@ -59,8 +105,15 @@ class AuthorRead(ORMModel, AuthorCreate):
 
 
 class CategoryCreate(BaseModel):
-    name: str = Field(min_length=1)
+    name: str
     description: str | None = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, value):
+        if len(value.strip()) < 2:
+            raise ValueError('Name must be at least 2 characters')
+        return value.strip()
 
 
 class CategoryRead(ORMModel, CategoryCreate):
@@ -77,9 +130,8 @@ class NarratorRead(ORMModel, NarratorCreate):
     id: int
 
 
-# Books and chapters
 class BookCreate(BaseModel):
-    title: str = Field(min_length=1)
+    title: str
     description: str | None = None
     language: Language = 'tg'
     license_type: LicenseType = 'public_domain'
@@ -88,6 +140,20 @@ class BookCreate(BaseModel):
     author_id: int
     category_id: int | None = None
     narrator_id: int | None = None
+
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, value):
+        if len(value.strip()) < 2:
+            raise ValueError('Title must be at least 2 characters')
+        return value.strip()
+
+    @field_validator('source_url')
+    @classmethod
+    def validate_source_url(cls, value):
+        if value and not value.startswith(('http://', 'https://')):
+            raise ValueError('Source URL must start with http:// or https://')
+        return value
 
 
 class BookUpdate(BaseModel):
@@ -119,9 +185,23 @@ class BookRead(ORMModel):
 
 
 class ChapterCreate(BaseModel):
-    order: int = Field(ge=1)
-    title: str = Field(min_length=1)
+    order: int
+    title: str
     text: str | None = None
+
+    @field_validator('order')
+    @classmethod
+    def validate_order(cls, value):
+        if value < 1:
+            raise ValueError('Chapter number must be 1 or more')
+        return value
+
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, value):
+        if not value.strip():
+            raise ValueError('Title must not be empty')
+        return value.strip()
 
 
 class ChapterUpdate(BaseModel):
@@ -150,7 +230,6 @@ class BookDetail(BookRead):
     chapters: list[ChapterShort]
 
 
-# Listening
 class ProgressSave(BaseModel):
     chapter_id: int
     position_seconds: int = Field(ge=0)
@@ -197,8 +276,22 @@ class FavoriteRead(ORMModel):
 
 
 class ReviewCreate(BaseModel):
-    rating: int = Field(ge=1, le=5)
+    rating: int
     text: str | None = None
+
+    @field_validator('rating')
+    @classmethod
+    def validate_rating(cls, value):
+        if value < 1 or value > 5:
+            raise ValueError('Rating must be from 1 to 5')
+        return value
+
+    @field_validator('text')
+    @classmethod
+    def validate_text(cls, value):
+        if value is not None and len(value) > 2000:
+            raise ValueError('Review must be at most 2000 characters')
+        return value.strip() or None if value else None
 
 
 class ReviewUser(ORMModel):
@@ -218,7 +311,14 @@ class ReviewRead(ORMModel):
 
 class ReportCreate(BaseModel):
     email: EmailStr
-    message: str = Field(min_length=5)
+    message: str
+
+    @field_validator('message')
+    @classmethod
+    def validate_message(cls, value):
+        if len(value.strip()) < 10:
+            raise ValueError('Message must be at least 10 characters')
+        return value.strip()
 
 
 class ReportRead(ORMModel):
@@ -240,7 +340,6 @@ class RatingRead(BaseModel):
 
 
 class ChapterOrder(BaseModel):
-    """Chapter ids in the new order, first to last."""
     chapter_ids: list[int]
 
 

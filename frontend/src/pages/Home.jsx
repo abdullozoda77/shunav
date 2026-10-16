@@ -29,8 +29,8 @@ export default function Home() {
 
   const { data: continueList } = useApi(user ? "/me/continue" : null);
   const { data: categories } = useApi("/categories");
-  const { data: newBooks, loading } = useApi(`/books?limit=12${categoryId ? `&category_id=${categoryId}` : ""}`);
-  const { data: topBooks } = useApi("/books?sort=rating&limit=5");
+  const { data: newBooks, loading } = useApi(`/books?page_size=12${categoryId ? `&category_id=${categoryId}` : ""}`);
+  const { data: topBooks } = useApi("/books?sort_by=rating&order=desc&page_size=5");
 
   const featured = topBooks?.[0];
   const verse = VERSES[new Date().getDate() % VERSES.length]; // a new verse every day

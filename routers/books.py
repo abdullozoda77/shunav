@@ -7,8 +7,8 @@ from auth import get_admin_user
 from config import IMAGE_TYPES
 from database import get_db
 from models import Author, Book, Category, Narrator, User
-from schemas import BookCreate, BookDetail, BookRead, BookUpdate, Language
-from utils import delete_file, get_or_404, get_visible_book, save_file
+from schemas import BookCreate, BookDetail, BookRead, BookUpdate, Language, LicenseType
+from utils import delete_file, get_or_404, get_visible_book, save_file, tajik_sort_key, text_contains
 
 router = APIRouter(prefix='/books', tags=['Books'])
 
@@ -25,36 +25,77 @@ def check_links(db: Session, data):
 
 @router.get('', response_model=list[BookRead])
 def list_books(
-    search: str | None = Query(None, description='Book title or author name'),
-    author_id: int | None = None,
-    category_id: int | None = None,
+    # Search
+    search: str | None = Query(None, min_length=1, description='Book title or author name'),
+
+    # Filter
+    author_id: int | None = Query(None, ge=1),
+    category_id: int | None = Query(None, ge=1),
+    narrator_id: int | None = Query(None, ge=1),
     language: Language | None = None,
-    sort: Literal['newest', 'title', 'rating'] = 'newest',
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    license_type: LicenseType | None = None,
+    min_rating: float | None = Query(None, ge=0, le=5),
+
+    # Pagination
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+
+    # Sorting
+    sort_by: Literal['id', 'title', 'created_at', 'rating'] = 'id',
+    order: Literal['asc', 'desc'] = 'desc',
+
     db: Session = Depends(get_db)
 ):
     query = db.query(Book).join(Author).filter(Book.is_published.is_(True))
 
-    if search:
-        query = query.filter(Book.title.ilike(f'%{search}%') | Author.name.ilike(f'%{search}%'))
-    if author_id:
+    # Filter
+    if author_id is not None:
         query = query.filter(Book.author_id == author_id)
-    if category_id:
+
+    if category_id is not None:
         query = query.filter(Book.category_id == category_id)
-    if language:
+
+    if narrator_id is not None:
+        query = query.filter(Book.narrator_id == narrator_id)
+
+    if language is not None:
         query = query.filter(Book.language == language)
 
-    if sort == 'title':
-        query = query.order_by(Book.title)
+    if license_type is not None:
+        query = query.filter(Book.license_type == license_type)
+
+    # Sorting
+    sort_columns = {
+        'id': Book.id,
+        'title': Book.title,
+        'created_at': Book.created_at,
+    }
+    column = sort_columns.get(sort_by, Book.id)
+
+    if order == 'desc':
+        query = query.order_by(column.desc())
     else:
-        query = query.order_by(Book.id.desc())
+        query = query.order_by(column.asc())
 
     books = query.all()
-    if sort == 'rating':  # rating is counted in Python (see Book.average_rating)
-        books.sort(key=lambda book: (book.average_rating, book.reviews_count), reverse=True)
 
-    return books[skip:skip + limit]
+    # Search (in Python, so Cyrillic upper/lower case works)
+    if search is not None:
+        books = [book for book in books if text_contains(book.title, search) or text_contains(book.author.name, search)]
+
+    # Rating is counted in Python (see Book.average_rating), so it is filtered and sorted here
+    if min_rating is not None:
+        books = [book for book in books if book.average_rating >= min_rating]
+
+    if sort_by == 'rating':
+        books.sort(key=lambda book: (book.average_rating, book.reviews_count), reverse=(order == 'desc'))
+
+    if sort_by == 'title':  # Tajik alphabet order
+        books.sort(key=lambda book: tajik_sort_key(book.title), reverse=(order == 'desc'))
+
+    # Pagination
+    skip = (page - 1) * page_size
+    return books[skip:skip + page_size]
 
 
 @router.get('/{book_id}', response_model=BookDetail)

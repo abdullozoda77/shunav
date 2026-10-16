@@ -48,7 +48,7 @@ function markWelcomed() {
 export default function Welcome() {
   const [slide, setSlide] = useState(0);
   const touchStart = useRef(0);
-  const { data: books } = useApi("/books?limit=3");
+  const { data: books } = useApi("/books?page_size=3");
   const current = SLIDES[slide];
 
   function onTouchEnd(event) {

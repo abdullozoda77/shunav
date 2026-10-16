@@ -6,6 +6,17 @@ import Spinner from "../components/Spinner.jsx";
 import { formatDuration } from "../format.js";
 import { useApi } from "../hooks.js";
 
+// what the user picks -> sort_by + order for the API
+const SORTS = {
+  newest: { label: "Навтарин", sort_by: "id", order: "desc" },
+  rating: { label: "Беҳтарин", sort_by: "rating", order: "desc" },
+  title: { label: "Аз рӯи ном (А–Я)", sort_by: "title", order: "asc" },
+  title_desc: { label: "Аз рӯи ном (Я–А)", sort_by: "title", order: "desc" },
+  oldest: { label: "Аввал кӯҳнаҳо", sort_by: "id", order: "asc" },
+};
+
+const PAGE_SIZE = 24;
+
 const LANGUAGES = [
   { code: "", name: "Ҳама забонҳо" },
   { code: "tg", name: "Тоҷикӣ" },
@@ -21,9 +32,12 @@ export default function Search() {
   const { data: categories } = useApi("/categories");
   const { data: authors } = useApi("/authors");
 
-  const query = new URLSearchParams({ limit: "50", sort: params.get("sort") || "newest" });
+  const sort = SORTS[params.get("sort")] || SORTS.newest;
+  const page = Number(params.get("page")) || 1;
+
+  const query = new URLSearchParams({ sort_by: sort.sort_by, order: sort.order, page, page_size: PAGE_SIZE });
   if (params.get("q")) query.set("search", params.get("q"));
-  for (const key of ["category_id", "author_id", "language"]) {
+  for (const key of ["category_id", "author_id", "language", "min_rating"]) {
     if (params.get(key)) query.set(key, params.get(key));
   }
   const { data: books, loading } = useApi(`/books?${query}`);
@@ -32,6 +46,7 @@ export default function Search() {
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
     else next.delete(key);
+    if (key !== "page") next.delete("page"); // a new filter starts again from page 1
     setParams(next);
   }
 
@@ -69,10 +84,15 @@ export default function Search() {
         <select className={select} value={params.get("language") || ""} onChange={(e) => setFilter("language", e.target.value)}>
           {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
         </select>
+        <select className={select} value={params.get("min_rating") || ""} onChange={(e) => setFilter("min_rating", e.target.value)}>
+          <option value="">Ҳама баҳоҳо</option>
+          <option value="4">★ 4 ва болотар</option>
+          <option value="4.5">★ 4.5 ва болотар</option>
+        </select>
         <select className={select} value={params.get("sort") || "newest"} onChange={(e) => setFilter("sort", e.target.value)}>
-          <option value="newest">Навтарин</option>
-          <option value="rating">Беҳтарин</option>
-          <option value="title">Аз рӯи ном</option>
+          {Object.entries(SORTS).map(([key, item]) => (
+            <option key={key} value={key}>{item.label}</option>
+          ))}
         </select>
       </div>
 
@@ -95,6 +115,19 @@ export default function Search() {
         <div className="text-center py-16 text-on-surface-variant">
           <Icon name="search_off" size={40} />
           <p className="mt-2">Ҳеҷ чиз ёфт нашуд</p>
+        </div>
+      )}
+
+      {/* pages */}
+      {(page > 1 || books?.length === PAGE_SIZE) && (
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <button disabled={page === 1} onClick={() => setFilter("page", page - 1)} className="h-10 px-4 rounded-xl bg-surface-container-high disabled:opacity-40">
+            ← Пеш
+          </button>
+          <span className="text-label-md text-on-surface-variant">Саҳифаи {page}</span>
+          <button disabled={books?.length < PAGE_SIZE} onClick={() => setFilter("page", page + 1)} className="h-10 px-4 rounded-xl bg-surface-container-high disabled:opacity-40">
+            Баъд →
+          </button>
         </div>
       )}
     </div>
