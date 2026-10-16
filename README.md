@@ -13,6 +13,27 @@ python3 -m venv .venv
 
 Swagger: http://127.0.0.1:8000/docs
 
+## Сохтор
+
+```
+main.py         ← app, CORS, /media, ҳамаи routers
+config.py       ← SECRET_KEY, CORS, намудҳои файл
+database.py     ← SQLite, get_db
+models.py       ← ҳамаи ҷадвалҳо
+schemas.py      ← Pydantic (дархост / ҷавоб)
+auth.py         ← парол, JWT, get_current_user, get_admin_user
+utils.py        ← get_or_404, get_visible_book, save_file, delete_file
+routers/
+  users.py      ← /register /login /me
+  authors.py  categories.py  narrators.py
+  books.py      ← рӯйхат, ҷустуҷӯ, муқова
+  chapters.py   ← бобҳо, аудио, иваз кардани тартиб
+  listening.py  ← /progress /me/continue /me/stats
+  bookmarks.py  favorites.py  reviews.py
+  reports.py    ← шикоят аз ҳуқуқ
+  admin.py      ← ҳамаи китобҳо, корбарон, омор
+```
+
 ## Моделҳо
 
 - **User**: корбар, забони интихобшуда, `is_admin`

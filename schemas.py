@@ -31,6 +31,7 @@ class UserRead(ORMModel):
     username: str
     email: str
     preferred_language: str
+    is_active: bool
     is_admin: bool
     created_at: datetime
 
@@ -215,3 +216,22 @@ class ReportRead(ORMModel):
 
 class ReportStatus(BaseModel):
     status: Literal['new', 'reviewed', 'removed']
+
+
+class RatingRead(BaseModel):
+    average: float
+    count: int
+
+
+class ChapterOrder(BaseModel):
+    """Chapter ids in the new order, first to last."""
+    chapter_ids: list[int]
+
+
+class StatsRead(BaseModel):
+    listened_seconds: int
+    books_started: int
+    books_finished: int
+    bookmarks: int
+    favorites: int
+    reviews: int
