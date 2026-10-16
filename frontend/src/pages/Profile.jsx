@@ -22,9 +22,9 @@ export default function Profile() {
   ];
 
   return (
-    <div className="px-4 pt-3 pb-8 flex flex-col gap-5">
-      <section className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-high">
-        <div className="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center font-serif text-headline-md font-bold">{user.name[0]}</div>
+    <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-5 md:gap-8 max-w-5xl">
+      <section className="flex items-center gap-4 md:gap-6 p-4 md:p-8 rounded-2xl bg-surface-container-high">
+        <div className="w-16 h-16 md:w-24 md:h-24 md:text-[40px] rounded-full bg-primary text-on-primary flex items-center justify-center font-serif text-headline-md font-bold">{user.name[0]}</div>
         <div className="min-w-0">
           <h1 className="font-serif text-headline-md truncate">{user.name}</h1>
           <p className="text-body-sm text-on-surface-variant truncate">@{user.username} • {user.email}</p>
@@ -34,9 +34,9 @@ export default function Profile() {
 
       <section>
         <h2 className="font-serif text-headline-sm mb-3">Омори ман</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
           {items.map((item) => (
-            <div key={item.label} className="p-3 rounded-xl bg-surface-container flex flex-col gap-1">
+            <div key={item.label} className="p-3 md:p-5 rounded-xl bg-surface-container flex flex-col gap-1">
               <Icon name={item.icon} size={20} className={item.color} />
               <span className="text-label-lg font-bold">{item.value}</span>
               <span className="text-label-sm text-on-surface-variant">{item.label}</span>
@@ -57,7 +57,7 @@ export default function Profile() {
           logout();
           navigate("/welcome");
         }}
-        className="h-12 rounded-xl bg-surface-container text-error flex items-center justify-center gap-2"
+        className="h-12 md:w-60 rounded-xl bg-surface-container text-error flex items-center justify-center gap-2"
       >
         <Icon name="logout" size={20} /> Баромадан
       </button>

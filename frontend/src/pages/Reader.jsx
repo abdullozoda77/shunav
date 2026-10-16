@@ -60,7 +60,7 @@ export default function Reader() {
   return (
     <div className={`min-h-screen ${THEMES[theme]}`}>
       <Header title={book?.title || "Хондан"} />
-      <main className="pt-20 pb-36 px-5 max-w-2xl mx-auto">
+      <main className="pt-20 md:pt-28 pb-36 px-5 max-w-2xl mx-auto">
         {loading ? (
           <Spinner />
         ) : (

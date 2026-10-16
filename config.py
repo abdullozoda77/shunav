@@ -10,7 +10,6 @@ CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://localhost
 
 MEDIA_DIR = 'media'
 
-# Allowed upload types: content type -> file extension
 AUDIO_TYPES = {
     'audio/mpeg': '.mp3',
     'audio/mp4': '.m4a',

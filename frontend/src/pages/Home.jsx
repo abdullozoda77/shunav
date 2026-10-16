@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import BookCard from "../components/BookCard.jsx";
 import Cover from "../components/Cover.jsx";
+import GirihBackground from "../components/GirihBackground.jsx";
 import Icon from "../components/Icon.jsx";
 import ProgressRing from "../components/ProgressRing.jsx";
 import Spinner from "../components/Spinner.jsx";
@@ -16,6 +17,9 @@ const VERSES = [
   { text: "Тавоно бувад ҳар ки доно бувад, зи дониш дили пир барно бувад.", author: "Фирдавсӣ" },
 ];
 
+// Phones: a sideways-scrolling row. Wide screens: a normal grid.
+const ROW = "flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory md:mx-0 md:px-0 md:grid md:overflow-visible md:gap-5";
+
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -25,7 +29,7 @@ export default function Home() {
 
   const { data: continueList } = useApi(user ? "/me/continue" : null);
   const { data: categories } = useApi("/categories");
-  const { data: newBooks, loading } = useApi(`/books?limit=10${categoryId ? `&category_id=${categoryId}` : ""}`);
+  const { data: newBooks, loading } = useApi(`/books?limit=12${categoryId ? `&category_id=${categoryId}` : ""}`);
   const { data: topBooks } = useApi("/books?sort=rating&limit=5");
 
   const featured = topBooks?.[0];
@@ -37,141 +41,155 @@ export default function Home() {
   }
 
   return (
-    <div className="px-4 pt-3 pb-8 flex flex-col gap-6">
-      {/* Greeting */}
-      <section className="flex flex-col gap-1">
-        <h1 className="font-serif text-headline-lg-mobile tracking-tight">
-          Салом{user ? `, ${user.name}` : ""} <span className="inline-block animate-bounce">👋</span>
-        </h1>
-        <p className="text-body-sm text-on-surface-variant">Имрӯз чиро мешунавед? Ҳикмат ва каломи наку интизор аст.</p>
-      </section>
+    <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-6 md:gap-12">
+      {/* Hero: greeting + featured book */}
+      <section className="relative md:rounded-3xl md:overflow-hidden md:bg-surface-container-low md:p-10 lg:p-14 md:shadow-2xl">
+        <div className="hidden md:block absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_40%,rgba(255,192,65,0.18),rgba(79,219,200,0.06)_40%,transparent_70%)]" />
+          <GirihBackground className="opacity-[0.04]" />
+        </div>
 
-      {/* Search */}
-      <form onSubmit={submitSearch} className="flex items-center w-full h-12 bg-surface-container-high rounded-xl px-3.5 shadow-md gap-3 focus-within:bg-surface-container-highest">
-        <Icon name="search" size={22} className="text-primary" />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="w-full bg-transparent outline-none text-body-sm placeholder:text-outline"
-          placeholder="Ҷустуҷӯи асар ё шоир..."
-        />
-        <Link to="/search" className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-secondary" aria-label="Филтрҳо">
-          <Icon name="tune" size={20} />
-        </Link>
-      </form>
+        <div className="relative grid md:grid-cols-[1fr_auto] gap-8 md:gap-12 items-center">
+          <div className="flex flex-col gap-4 md:gap-5">
+            <div>
+              <h1 className="font-serif text-headline-lg-mobile md:text-[44px] md:leading-[52px] font-semibold tracking-tight">
+                Салом{user ? `, ${user.name}` : ""} <span className="inline-block animate-bounce">👋</span>
+              </h1>
+              <p className="text-body-sm md:text-body-md text-on-surface-variant mt-1 md:mt-3 max-w-xl">
+                Имрӯз чиро мешунавед? Классикони форсу тоҷик — аз Рӯдакӣ то Айнӣ — бо овоз ва матн, ройгон.
+              </p>
+            </div>
 
-      {/* Continue listening */}
-      {continueList?.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(79,219,200,0.6)]" />
-            <h2 className="font-serif text-headline-sm">Идома додан</h2>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
-            {continueList.map(({ book, chapter, position_seconds }, index) => {
-              const done = percent(position_seconds, chapter.duration_seconds);
-              return (
-                <div key={book.id} className="w-[82vw] max-w-[320px] shrink-0 snap-center bg-surface-container-high rounded-xl p-3.5 shadow-lg relative overflow-hidden">
-                  <Link to={`/books/${book.id}`} className="flex items-start gap-3">
-                    <Cover book={book} showTitle={false} className="w-14 h-[72px] rounded-lg shrink-0" />
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-label-sm text-secondary">{book.category?.name}</span>
-                      <h3 className="font-serif text-label-lg truncate">{book.title}</h3>
-                      <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
-                      <p className="text-[12px] text-tertiary truncate mt-0.5">{chapter.title}</p>
-                    </div>
-                  </Link>
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <ProgressRing value={done} color={index % 2 ? "text-secondary" : "text-primary"} />
-                      <span className="text-label-sm text-on-surface-variant">
-                        {formatDuration(chapter.duration_seconds - position_seconds)} боқӣ монд
+            <form onSubmit={submitSearch} className="flex items-center w-full max-w-xl h-12 md:h-14 bg-surface-container-high rounded-xl px-3.5 shadow-md gap-3 focus-within:bg-surface-container-highest">
+              <Icon name="search" size={22} className="text-primary" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="w-full bg-transparent outline-none text-body-sm md:text-body-md placeholder:text-outline"
+                placeholder="Ҷустуҷӯи асар ё шоир..."
+              />
+              <button className="hidden md:block h-10 px-5 rounded-lg bg-primary text-on-primary text-label-md font-bold">Ёфтан</button>
+            </form>
+
+            {/* featured book: a card on phones, part of the hero on wide screens */}
+            {featured && (
+              <div className="rounded-2xl overflow-hidden bg-surface-container-low md:bg-transparent shadow-xl md:shadow-none mt-2">
+                <div className="relative aspect-[16/9] md:hidden overflow-hidden">
+                  <Cover book={featured} showTitle={false} className="w-full h-full" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/40 to-transparent" />
+                </div>
+                <div className="p-4 md:p-0 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/90 text-on-primary text-label-sm font-bold">
+                      <Icon name="stars" filled size={15} /> Интихоби ҳафта
+                    </span>
+                    {featured.narrator && (
+                      <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-label-sm">
+                        <Icon name="record_voice_over" size={15} className="text-secondary" /> {featured.narrator.name}
                       </span>
-                    </div>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="font-serif text-headline-md md:text-[32px] md:leading-[40px] font-semibold">{featured.title}</h2>
+                    <p className="text-label-md md:text-label-lg text-primary">{featured.author.name}</p>
+                    <p className="text-body-sm md:text-body-md text-on-surface-variant line-clamp-2 mt-1 max-w-xl">{featured.description}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
                     <button
-                      onClick={() => player.playById(book.id, chapter.id, position_seconds)}
-                      className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-[0_0_12px_rgba(255,192,65,0.35)] active:scale-95"
-                      aria-label="Идома додан"
+                      onClick={() => player.playById(featured.id)}
+                      className="flex-1 md:flex-none md:px-8 h-12 bg-primary text-on-primary rounded-xl text-label-lg font-bold flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,192,65,0.35)] hover:brightness-110 active:scale-95"
                     >
-                      <Icon name="play_arrow" filled size={20} />
+                      <Icon name="play_circle" filled size={22} /> Гӯш кардан
                     </button>
+                    <Link to={`/books/${featured.id}`} className="h-12 px-5 rounded-xl bg-surface-container-high hover:bg-surface-bright flex items-center justify-center gap-2 text-label-lg">
+                      <Icon name="format_list_bulleted" size={22} />
+                      <span className="hidden sm:inline">Мундариҷа</span>
+                    </Link>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Categories */}
-      <section className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
-        {[{ id: null, name: "Ҳама" }, ...(categories || [])].map((category) => (
-          <button
-            key={category.name}
-            onClick={() => setCategoryId(category.id)}
-            className={`px-4 py-2 rounded-full text-label-md shrink-0 active:scale-95 ${
-              categoryId === category.id
-                ? "bg-primary text-on-primary font-bold shadow-[0_0_14px_rgba(255,192,65,0.3)]"
-                : "bg-surface-container-high hover:text-primary"
-            }`}
-          >
-            {category.name}
-          </button>
-        ))}
-      </section>
-
-      {/* Featured book */}
-      {featured && !categoryId && (
-        <section className="relative w-full rounded-2xl overflow-hidden bg-surface-container-low shadow-xl">
-          <div className="relative w-full aspect-[16/9] overflow-hidden">
-            <Cover book={featured} showTitle={false} className="w-full h-full" />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/40 to-transparent" />
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/90 text-on-primary text-label-sm font-bold">
-              <Icon name="stars" filled size={15} /> Интихоби ҳафта
-            </div>
-            {featured.narrator && (
-              <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high/90 text-secondary">
-                <Icon name="record_voice_over" size={15} />
-                <span className="text-[11px] font-semibold text-on-surface">{featured.narrator.name}</span>
               </div>
             )}
           </div>
-          <div className="p-4 flex flex-col gap-3">
-            <div>
-              <h3 className="font-serif text-headline-md">{featured.title}</h3>
-              <p className="text-label-md text-primary">{featured.author.name}</p>
-              <p className="text-body-sm text-on-surface-variant line-clamp-2 mt-1">{featured.description}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => player.playById(featured.id)}
-                className="flex-1 h-12 bg-primary text-on-primary rounded-xl text-label-lg font-bold flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,192,65,0.35)] active:scale-95"
-              >
-                <Icon name="play_circle" filled size={22} /> Гӯш кардан
-              </button>
-              <Link to={`/books/${featured.id}`} className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center hover:text-primary" aria-label="Рӯйхати бобҳо">
-                <Icon name="format_list_bulleted" size={22} />
+
+          {/* fanned covers (wide screens) */}
+          {topBooks?.length > 0 && (
+            <div className="hidden md:flex relative w-[340px] lg:w-[420px] h-[360px] lg:h-[420px] items-center justify-center">
+              <div className="absolute w-80 h-80 rounded-full border-2 border-dashed border-primary/20 animate-spin" style={{ animationDuration: "40s" }} />
+              {topBooks[1] && (
+                <Link to={`/books/${topBooks[1].id}`} className="absolute -translate-x-28 -rotate-12 opacity-80 hover:opacity-100 transition">
+                  <Cover book={topBooks[1]} className="w-36 lg:w-40 aspect-[3/4.4] rounded-xl shadow-2xl" />
+                </Link>
+              )}
+              {topBooks[2] && (
+                <Link to={`/books/${topBooks[2].id}`} className="absolute translate-x-28 rotate-12 opacity-80 hover:opacity-100 transition">
+                  <Cover book={topBooks[2]} className="w-36 lg:w-40 aspect-[3/4.4] rounded-xl shadow-2xl" />
+                </Link>
+              )}
+              <Link to={`/books/${featured.id}`} className="relative z-10 hover:scale-105 transition-transform">
+                <Cover book={featured} className="w-48 lg:w-56 aspect-[3/4.4] rounded-xl shadow-[0_24px_50px_-12px_rgba(0,0,0,0.85),0_0_35px_rgba(224,165,38,0.2)]" />
               </Link>
             </div>
+          )}
+        </div>
+      </section>
+
+      {/* Continue listening */}
+      {continueList?.length > 0 && (
+        <section className="flex flex-col gap-3 md:gap-5">
+          <SectionTitle dot title="Идома додан" link="/library" linkText="Китобхона" />
+          <div className={`${ROW} md:grid-cols-2 lg:grid-cols-3`}>
+            {continueList.slice(0, 6).map(({ book, chapter, position_seconds }, index) => (
+              <div key={book.id} className="w-[82vw] max-w-[320px] md:w-auto md:max-w-none shrink-0 snap-center bg-surface-container-high rounded-xl p-3.5 md:p-5 shadow-lg hover:bg-surface-container-highest transition-colors">
+                <Link to={`/books/${book.id}`} className="flex items-start gap-3 md:gap-4">
+                  <Cover book={book} showTitle={false} className="w-14 h-[72px] md:w-16 md:h-[84px] rounded-lg shrink-0" />
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-label-sm text-secondary">{book.category?.name}</span>
+                    <h3 className="font-serif text-label-lg md:text-headline-sm truncate">{book.title}</h3>
+                    <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+                    <p className="text-[12px] text-tertiary truncate mt-0.5">{chapter.title}</p>
+                  </div>
+                </Link>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <ProgressRing value={percent(position_seconds, chapter.duration_seconds)} color={index % 2 ? "text-secondary" : "text-primary"} />
+                    <span className="text-label-sm text-on-surface-variant">{formatDuration(chapter.duration_seconds - position_seconds)} боқӣ монд</span>
+                  </div>
+                  <button
+                    onClick={() => player.playById(book.id, chapter.id, position_seconds)}
+                    className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-[0_0_12px_rgba(255,192,65,0.35)] hover:brightness-110 active:scale-95"
+                    aria-label="Идома додан"
+                  >
+                    <Icon name="play_arrow" filled size={20} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* New books */}
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon name="auto_stories" size={20} className="text-primary" />
-            <h2 className="font-serif text-headline-sm">Нав илова шуд</h2>
-          </div>
-          <Link to="/search" className="text-label-sm text-primary hover:underline flex items-center">
-            Ҳама <Icon name="chevron_right" size={14} />
-          </Link>
+      {/* Categories + new books */}
+      <section className="flex flex-col gap-4 md:gap-5">
+        <SectionTitle icon="auto_stories" title="Нав илова шуд" link="/search" linkText="Ҳама" />
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
+          {[{ id: null, name: "Ҳама" }, ...(categories || [])].map((category) => (
+            <button
+              key={category.name}
+              onClick={() => setCategoryId(category.id)}
+              className={`px-4 py-2 rounded-full text-label-md shrink-0 active:scale-95 ${
+                categoryId === category.id
+                  ? "bg-primary text-on-primary font-bold shadow-[0_0_14px_rgba(255,192,65,0.3)]"
+                  : "bg-surface-container-high hover:text-primary"
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
         </div>
         {loading ? (
           <Spinner />
         ) : newBooks?.length ? (
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+          <div className={`${ROW} md:grid-cols-4 lg:grid-cols-6`}>
             {newBooks.map((book) => (
               <BookCard key={book.id} book={book} />
             ))}
@@ -181,53 +199,80 @@ export default function Home() {
         )}
       </section>
 
-      {/* Top rated */}
-      {topBooks?.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Icon name="military_tech" size={20} className="text-secondary" />
-            <h2 className="font-serif text-headline-sm">Беҳтаринҳо</h2>
-          </div>
-          <div className="flex flex-col gap-2">
-            {topBooks.map((book, index) => (
-              <div key={book.id} className="flex items-center justify-between p-3 rounded-xl bg-surface-container hover:bg-surface-container-high">
-                <Link to={`/books/${book.id}`} className="flex items-center gap-3 min-w-0">
-                  <span className={`font-serif text-headline-sm font-bold w-5 text-center ${["text-primary", "text-secondary", "text-tertiary"][index] || "text-outline"}`}>
-                    {index + 1}
-                  </span>
-                  <Cover book={book} showTitle={false} className="w-11 h-14 rounded-lg shrink-0" />
-                  <div className="min-w-0">
-                    <h4 className="font-serif text-label-lg truncate">{book.title}</h4>
-                    <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
-                    <span className="flex items-center text-[11px] text-primary font-semibold mt-0.5">
-                      <Icon name="star" filled size={12} className="mr-0.5" />
-                      {book.average_rating.toFixed(1)}
-                      <span className="text-outline font-normal ml-1">• {book.reviews_count} тақриз</span>
+      {/* Top rated + verse of the day */}
+      <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+        {topBooks?.length > 0 && (
+          <section className="lg:col-span-2 flex flex-col gap-3 md:gap-5">
+            <SectionTitle icon="military_tech" iconColor="text-secondary" title="Беҳтаринҳо" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-1 gap-2 md:gap-3">
+              {topBooks.map((book, index) => (
+                <div key={book.id} className="flex items-center justify-between p-3 md:p-4 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors">
+                  <Link to={`/books/${book.id}`} className="flex items-center gap-3 md:gap-4 min-w-0">
+                    <span className={`font-serif text-headline-sm font-bold w-6 text-center ${["text-primary", "text-secondary", "text-tertiary"][index] || "text-outline"}`}>
+                      {index + 1}
                     </span>
-                  </div>
-                </Link>
-                <button
-                  onClick={() => player.playById(book.id)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-surface-container-high hover:bg-primary hover:text-on-primary shrink-0 ml-2"
-                  aria-label="Гӯш кардан"
-                >
-                  <Icon name="play_arrow" filled size={20} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+                    <Cover book={book} showTitle={false} className="w-11 h-14 rounded-lg shrink-0" />
+                    <div className="min-w-0">
+                      <h4 className="font-serif text-label-lg truncate">{book.title}</h4>
+                      <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+                      <span className="flex items-center text-[11px] text-primary font-semibold mt-0.5">
+                        <Icon name="star" filled size={12} className="mr-0.5" />
+                        {book.average_rating.toFixed(1)}
+                        <span className="text-outline font-normal ml-1">• {book.reviews_count} тақриз</span>
+                        {book.total_duration > 0 && <span className="text-outline font-normal ml-1">• {formatDuration(book.total_duration)}</span>}
+                      </span>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => player.playById(book.id)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-surface-container-high hover:bg-primary hover:text-on-primary shrink-0 ml-2"
+                    aria-label="Гӯш кардан"
+                  >
+                    <Icon name="play_arrow" filled size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Verse of the day */}
-      <section className="p-4 rounded-xl bg-gradient-to-r from-surface-container-high to-surface-container flex flex-col gap-2 shadow-md">
-        <div className="flex items-center gap-2 text-primary">
-          <Icon name="format_quote" size={18} />
-          <span className="text-label-sm uppercase tracking-wider font-bold">Байти рӯз</span>
-        </div>
-        <p className="font-serif text-verse italic">«{verse.text}»</p>
-        <span className="text-label-sm text-secondary">— {verse.author}</span>
-      </section>
+        <aside className="flex flex-col gap-4 lg:pt-14">
+          <section className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-surface-container-high to-surface-container flex flex-col gap-3 shadow-md relative overflow-hidden">
+            <Icon name="format_quote" size={96} className="absolute -right-3 -bottom-4 text-surface-container-highest/60" />
+            <div className="flex items-center gap-2 text-primary">
+              <Icon name="format_quote" size={18} />
+              <span className="text-label-sm uppercase tracking-wider font-bold">Байти рӯз</span>
+            </div>
+            <p className="relative font-serif text-verse md:text-[20px] md:leading-[36px] italic">«{verse.text}»</p>
+            <span className="relative text-label-sm text-secondary">— {verse.author}</span>
+          </section>
+
+          {!user && (
+            <section className="p-5 md:p-6 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col gap-3">
+              <h3 className="font-serif text-headline-sm">Аз ҳамон ҷо давом диҳед</h3>
+              <p className="text-body-sm text-on-surface-variant">Ворид шавед, то пешрафт, хатчӯбҳо ва китобҳои дилхоҳи шумо нигоҳ дошта шаванд.</p>
+              <Link to="/register" className="h-11 rounded-xl bg-primary text-on-primary text-label-lg flex items-center justify-center">Сабти ном</Link>
+            </section>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ title, icon, iconColor = "text-primary", dot, link, linkText }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        {dot && <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(79,219,200,0.6)]" />}
+        {icon && <Icon name={icon} size={22} className={iconColor} />}
+        <h2 className="font-serif text-headline-sm md:text-headline-md">{title}</h2>
+      </div>
+      {link && (
+        <Link to={link} className="text-label-sm md:text-label-md text-primary hover:underline flex items-center">
+          {linkText} <Icon name="chevron_right" size={16} />
+        </Link>
+      )}
     </div>
   );
 }

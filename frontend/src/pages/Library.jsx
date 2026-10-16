@@ -23,9 +23,9 @@ export default function Library() {
   if (!user) return <LoginFirst />;
 
   return (
-    <div className="px-4 pt-3 pb-8 flex flex-col gap-4">
-      <h1 className="font-serif text-headline-lg-mobile">Китобхонаи ман</h1>
-      <div className="flex bg-surface-container-high rounded-xl p-1">
+    <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-4 md:gap-6">
+      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">Китобхонаи ман</h1>
+      <div className="flex bg-surface-container-high rounded-xl p-1 md:max-w-md">
         {TABS.map((item) => (
           <button
             key={item.key}
@@ -36,9 +36,11 @@ export default function Library() {
           </button>
         ))}
       </div>
-      {tab === "continue" && <ContinueTab />}
+      <div className="grid md:grid-cols-2 gap-3">
+        {tab === "continue" && <ContinueTab />}
+        {tab === "bookmarks" && <BookmarksTab />}
+      </div>
       {tab === "favorites" && <FavoritesTab />}
-      {tab === "bookmarks" && <BookmarksTab />}
     </div>
   );
 }
@@ -59,7 +61,11 @@ function ContinueTab() {
         </div>
       </Link>
       <ProgressRing value={percent(position_seconds, chapter.duration_seconds)} />
-      <button onClick={() => player.playById(book.id, chapter.id, position_seconds)} className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center" aria-label="Идома додан">
+      <button
+        onClick={() => player.playById(book.id, chapter.id, position_seconds)}
+        className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center"
+        aria-label="Идома додан"
+      >
         <Icon name="play_arrow" filled size={20} />
       </button>
     </div>
@@ -72,7 +78,7 @@ function FavoritesTab() {
   if (!data?.length) return <Empty icon="favorite" text="Китобҳои дилхоҳро бо ♥ илова кунед." />;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
       {data.map(({ book }) => (
         <Link key={book.id} to={`/books/${book.id}`} className="flex flex-col gap-2">
           <Cover book={book} className="w-full aspect-[3/4] rounded-xl shadow-md" />
@@ -106,10 +112,18 @@ function BookmarksTab() {
         </p>
         {bookmark.note && <p className="text-body-sm text-tertiary truncate">{bookmark.note}</p>}
       </div>
-      <button onClick={() => player.playById(bookmark.chapter.book_id, bookmark.chapter_id, bookmark.position_seconds)} className="w-9 h-9 rounded-full bg-surface-container-highest text-primary flex items-center justify-center" aria-label="Пахш">
+      <button
+        onClick={() => player.playById(bookmark.chapter.book_id, bookmark.chapter_id, bookmark.position_seconds)}
+        className="w-9 h-9 rounded-full bg-surface-container-highest text-primary flex items-center justify-center"
+        aria-label="Пахш"
+      >
         <Icon name="play_arrow" filled size={18} />
       </button>
-      <button onClick={() => remove(bookmark.id)} className="w-9 h-9 rounded-full text-outline hover:text-error flex items-center justify-center" aria-label="Нест кардан">
+      <button
+        onClick={() => remove(bookmark.id)}
+        className="w-9 h-9 rounded-full text-outline hover:text-error flex items-center justify-center"
+        aria-label="Нест кардан"
+      >
         <Icon name="delete" size={18} />
       </button>
     </div>
@@ -118,7 +132,7 @@ function BookmarksTab() {
 
 function Empty({ icon, text }) {
   return (
-    <div className="text-center py-16 text-on-surface-variant">
+    <div className="md:col-span-2 text-center py-16 text-on-surface-variant">
       <Icon name={icon} size={40} />
       <p className="mt-2">{text}</p>
     </div>
@@ -131,7 +145,9 @@ export function LoginFirst() {
       <Icon name="lock" size={40} className="text-primary" />
       <p className="font-serif text-headline-sm">Аввал ворид шавед</p>
       <p className="text-body-sm text-on-surface-variant">Пешрафт, дилхоҳҳо ва хатчӯбҳо дар ҳисоби шумо нигоҳ дошта мешаванд.</p>
-      <Link to="/login" className="h-12 px-6 rounded-xl bg-primary text-on-primary text-label-lg flex items-center">Ворид шудан</Link>
+      <Link to="/login" className="h-12 px-6 rounded-xl bg-primary text-on-primary text-label-lg flex items-center">
+        Ворид шудан
+      </Link>
     </div>
   );
 }

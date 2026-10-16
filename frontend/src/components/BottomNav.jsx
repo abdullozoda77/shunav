@@ -1,30 +1,32 @@
 import { NavLink } from "react-router-dom";
 import Icon from "./Icon.jsx";
 
-const TABS = [
+// The same links are shown in the top menu on wide screens (Header.jsx)
+export const NAV_LINKS = [
   { to: "/", icon: "menu_book", label: "Асосӣ" },
   { to: "/search", icon: "search", label: "Ҷустуҷӯ" },
   { to: "/library", icon: "local_library", label: "Китобхона" },
   { to: "/profile", icon: "person", label: "Профил" },
 ];
 
+// Phones only: the menu at the bottom of the screen
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.5)]">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.5)]">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
-        {TABS.map((tab) => (
+        {NAV_LINKS.map((link) => (
           <NavLink
-            key={tab.to}
-            to={tab.to}
-            end={tab.to === "/"}
+            key={link.to}
+            to={link.to}
+            end={link.to === "/"}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[44px] ${
                 isActive ? "text-primary font-bold" : "text-on-surface-variant hover:text-on-surface"
               }`
             }
           >
-            <Icon name={tab.icon} size={22} />
-            <span className="text-label-sm">{tab.label}</span>
+            <Icon name={link.icon} size={22} />
+            <span className="text-label-sm">{link.label}</span>
           </NavLink>
         ))}
       </div>

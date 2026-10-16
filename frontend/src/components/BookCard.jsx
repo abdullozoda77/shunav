@@ -3,10 +3,10 @@ import { formatDuration } from "../format.js";
 import Cover from "./Cover.jsx";
 import Icon from "./Icon.jsx";
 
-// Small vertical card: cover, title, author, length
+// Small vertical card: cover, title, author, length. Fixed width in a phone carousel, grid cell on wide screens.
 export default function BookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="w-36 shrink-0 snap-start flex flex-col gap-2 group">
+    <Link to={`/books/${book.id}`} className="w-36 md:w-auto shrink-0 snap-start flex flex-col gap-2 group">
       <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-container shadow-md">
         <Cover book={book} className="w-full h-full group-hover:scale-105 transition-transform duration-300" />
         {book.reviews_count > 0 && (

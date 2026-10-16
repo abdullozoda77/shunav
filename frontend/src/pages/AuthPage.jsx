@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
+import GirihBackground from "../components/GirihBackground.jsx";
 import Icon from "../components/Icon.jsx";
 
 // Login and register share one page. mode = "login" | "register"
@@ -34,42 +35,80 @@ export default function AuthPage({ mode }) {
   const input = "w-full h-12 px-4 rounded-xl bg-surface-container-high text-on-surface placeholder:text-outline outline-none focus:ring-2 focus:ring-primary";
 
   return (
-    <main className="min-h-screen flex flex-col justify-center px-4 py-10 pt-safe bg-[radial-gradient(circle_at_50%_0%,rgba(255,192,65,0.12),transparent_60%)]">
-      <form onSubmit={submit} className="w-full max-w-sm mx-auto flex flex-col gap-3">
-        <Link to="/welcome" className="self-center flex items-center gap-2 mb-4">
-          <Icon name="auto_stories" filled size={30} className="text-primary" />
-          <span className="font-serif text-headline-md text-primary">Шунав</span>
-        </Link>
-        <h1 className="font-serif text-headline-lg-mobile text-center">{isRegister ? "Сабти ном" : "Ворид шудан"}</h1>
-        <p className="text-body-sm text-on-surface-variant text-center mb-3">
-          {isRegister ? "Ҳисоб созед, то аз ҳамон ҷое давом диҳед, ки қатъ кардед." : "Хуш омадед! Китобҳои шумо интизоранд."}
-        </p>
+    <main className="min-h-screen md:grid md:grid-cols-2">
+      {/* decorative half (wide screens) */}
+      <div className="hidden md:flex relative overflow-hidden bg-surface-container-low flex-col justify-end p-12 lg:p-16">
+        <GirihBackground className="opacity-[0.06]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_35%,rgba(255,192,65,0.22),rgba(79,219,200,0.06)_45%,transparent_70%)]" />
+        <div className="relative">
+          <Icon name="format_quote" size={48} className="text-primary" />
+          <p className="font-serif text-[28px] leading-[44px] italic mt-2">
+            «Бани одам аъзои якдигаранд,
+            <br />
+            Ки дар офариниш зи як гавҳаранд.»
+          </p>
+          <p className="text-label-lg text-secondary mt-4">— Саъдии Шерозӣ</p>
+        </div>
+      </div>
 
-        {isRegister && <input className={input} name="name" placeholder="Ном" value={form.name} onChange={change} required />}
-        <input className={input} name="username" placeholder="Номи корбар (username)" value={form.username} onChange={change} required autoComplete="username" />
-        {isRegister && <input className={input} name="email" type="email" placeholder="Email" value={form.email} onChange={change} required />}
-        <input className={input} name="password" type="password" placeholder="Парол" value={form.password} onChange={change} required minLength={isRegister ? 6 : undefined} autoComplete={isRegister ? "new-password" : "current-password"} />
-        {isRegister && (
-          <select className={input} name="preferred_language" value={form.preferred_language} onChange={change}>
-            <option value="tg">Тоҷикӣ</option>
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
-          </select>
-        )}
-
-        {error && <p className="text-error text-body-sm">{error}</p>}
-
-        <button disabled={sending} className="h-12 mt-2 bg-primary text-on-primary text-label-lg rounded-xl shadow-lg hover:bg-primary-container disabled:opacity-60">
-          {sending ? "..." : isRegister ? "Сабти ном" : "Ворид шудан"}
-        </button>
-
-        <p className="text-center text-body-sm text-on-surface-variant mt-2">
-          {isRegister ? "Аллакай ҳисоб доред? " : "Ҳисоб надоред? "}
-          <Link to={isRegister ? "/login" : "/register"} className="text-secondary hover:underline">
-            {isRegister ? "Ворид шавед" : "Сабти ном кунед"}
+      <div className="min-h-screen flex flex-col justify-center px-4 py-10 pt-safe bg-[radial-gradient(circle_at_50%_0%,rgba(255,192,65,0.12),transparent_60%)]">
+        <form onSubmit={submit} className="w-full max-w-sm mx-auto flex flex-col gap-3">
+          <Link to="/welcome" className="self-center flex items-center gap-2 mb-4">
+            <Icon name="auto_stories" filled size={30} className="text-primary" />
+            <span className="font-serif text-headline-md text-primary">Шунав</span>
           </Link>
-        </p>
-      </form>
+          <h1 className="font-serif text-headline-lg-mobile text-center">{isRegister ? "Сабти ном" : "Ворид шудан"}</h1>
+          <p className="text-body-sm text-on-surface-variant text-center mb-3">
+            {isRegister ? "Ҳисоб созед, то аз ҳамон ҷое давом диҳед, ки қатъ кардед." : "Хуш омадед! Китобҳои шумо интизоранд."}
+          </p>
+
+          {isRegister && <input className={input} name="name" placeholder="Ном" value={form.name} onChange={change} required />}
+          <input
+            className={input}
+            name="username"
+            placeholder="Номи корбар (username)"
+            value={form.username}
+            onChange={change}
+            required
+            autoComplete="username"
+          />
+          {isRegister && <input className={input} name="email" type="email" placeholder="Email" value={form.email} onChange={change} required />}
+          <input
+            className={input}
+            name="password"
+            type="password"
+            placeholder="Парол"
+            value={form.password}
+            onChange={change}
+            required
+            minLength={isRegister ? 6 : undefined}
+            autoComplete={isRegister ? "new-password" : "current-password"}
+          />
+          {isRegister && (
+            <select className={input} name="preferred_language" value={form.preferred_language} onChange={change}>
+              <option value="tg">Тоҷикӣ</option>
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+            </select>
+          )}
+
+          {error && <p className="text-error text-body-sm">{error}</p>}
+
+          <button
+            disabled={sending}
+            className="h-12 mt-2 bg-primary text-on-primary text-label-lg rounded-xl shadow-lg hover:bg-primary-container disabled:opacity-60"
+          >
+            {sending ? "..." : isRegister ? "Сабти ном" : "Ворид шудан"}
+          </button>
+
+          <p className="text-center text-body-sm text-on-surface-variant mt-2">
+            {isRegister ? "Аллакай ҳисоб доред? " : "Ҳисоб надоред? "}
+            <Link to={isRegister ? "/login" : "/register"} className="text-secondary hover:underline">
+              {isRegister ? "Ворид шавед" : "Сабти ном кунед"}
+            </Link>
+          </p>
+        </form>
+      </div>
     </main>
   );
 }

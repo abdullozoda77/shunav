@@ -38,15 +38,15 @@ export default function Search() {
   const select = "h-10 px-3 rounded-xl bg-surface-container-high text-label-md outline-none shrink-0";
 
   return (
-    <div className="px-4 pt-3 pb-8 flex flex-col gap-4">
-      <h1 className="font-serif text-headline-lg-mobile">Ҷустуҷӯ</h1>
+    <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-4 md:gap-6">
+      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">Ҷустуҷӯ</h1>
 
       <form
         onSubmit={(event) => {
           event.preventDefault();
           setFilter("q", text.trim());
         }}
-        className="flex items-center h-12 bg-surface-container-high rounded-xl px-3.5 gap-3 focus-within:bg-surface-container-highest"
+        className="flex items-center h-12 md:h-14 max-w-3xl bg-surface-container-high rounded-xl px-3.5 gap-3 focus-within:bg-surface-container-highest"
       >
         <Icon name="search" size={22} className="text-primary" />
         <input value={text} onChange={(e) => setText(e.target.value)} className="w-full bg-transparent outline-none text-body-sm placeholder:text-outline" placeholder="Номи асар ё шоир..." autoFocus />
@@ -57,7 +57,7 @@ export default function Search() {
         )}
       </form>
 
-      <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
+      <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 md:mx-0 md:px-0 md:flex-wrap">
         <select className={select} value={params.get("category_id") || ""} onChange={(e) => setFilter("category_id", e.target.value)}>
           <option value="">Ҳама жанрҳо</option>
           {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -79,7 +79,7 @@ export default function Search() {
       {loading ? (
         <Spinner />
       ) : books?.length ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
           {books.map((book) => (
             <Link key={book.id} to={`/books/${book.id}`} className="flex flex-col gap-2 group">
               <Cover book={book} className="w-full aspect-[3/4] rounded-xl shadow-md group-hover:scale-[1.02] transition-transform" />
