@@ -29,7 +29,7 @@ def list_books(
     author_id: int | None = None,
     category_id: int | None = None,
     language: Language | None = None,
-    sort: Literal['newest', 'title'] = 'newest',
+    sort: Literal['newest', 'title', 'rating'] = 'newest',
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
@@ -50,7 +50,11 @@ def list_books(
     else:
         query = query.order_by(Book.id.desc())
 
-    return query.offset(skip).limit(limit).all()
+    books = query.all()
+    if sort == 'rating':  # rating is counted in Python (see Book.average_rating)
+        books.sort(key=lambda book: (book.average_rating, book.reviews_count), reverse=True)
+
+    return books[skip:skip + limit]
 
 
 @router.get('/{book_id}', response_model=BookDetail)

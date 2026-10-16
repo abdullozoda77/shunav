@@ -111,6 +111,8 @@ class BookRead(ORMModel):
     license_type: str
     is_published: bool
     total_duration: int
+    average_rating: float
+    reviews_count: int
     author: AuthorRead
     category: CategoryRead | None
     narrator: NarratorRead | None
@@ -172,9 +174,17 @@ class BookmarkCreate(BaseModel):
     note: str | None = None
 
 
+class BookmarkChapter(ORMModel):
+    id: int
+    title: str
+    book_id: int
+    book_title: str
+
+
 class BookmarkRead(ORMModel):
     id: int
     chapter_id: int
+    chapter: BookmarkChapter
     position_seconds: int
     note: str | None
     created_at: datetime
@@ -191,9 +201,15 @@ class ReviewCreate(BaseModel):
     text: str | None = None
 
 
+class ReviewUser(ORMModel):
+    id: int
+    name: str
+
+
 class ReviewRead(ORMModel):
     id: int
     user_id: int
+    user: ReviewUser
     book_id: int
     rating: int
     text: str | None

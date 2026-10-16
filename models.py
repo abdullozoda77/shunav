@@ -89,6 +89,16 @@ class Book(Base):
     def total_duration(self) -> int:
         return sum(c.duration_seconds or 0 for c in self.chapters)
 
+    @property
+    def reviews_count(self) -> int:
+        return len(self.reviews)
+
+    @property
+    def average_rating(self) -> float:
+        if not self.reviews:
+            return 0
+        return round(sum(r.rating for r in self.reviews) / len(self.reviews), 2)
+
 
 class Chapter(Base):
     __tablename__ = "chapters"
@@ -104,6 +114,10 @@ class Chapter(Base):
     audio_status: Mapped[str] = mapped_column(String, default="pending")  # pending / processing / done / failed
 
     book: Mapped["Book"] = relationship(back_populates="chapters")
+
+    @property
+    def book_title(self) -> str:
+        return self.book.title
 
 
 class ListeningProgress(Base):

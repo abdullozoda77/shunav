@@ -7,11 +7,24 @@
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python create_admin.py admin admin@example.tj <password>
-.venv/bin/uvicorn main:app --reload
+.venv/bin/python seed.py            # китобҳои намунавӣ, admin/admin123 ва demo/demo123
+cd frontend && npm install
+npm run dev                         # FastAPI (8002) + React (5175) якҷоя
 ```
 
-Swagger: http://127.0.0.1:8000/docs
+- Сайт: http://localhost:5175
+- Swagger: http://127.0.0.1:8002/docs
+
+## Frontend (frontend/src)
+
+```
+api.js        ← ҳамаи дархостҳо ба API (/api → FastAPI)
+auth.jsx      ← кӣ ворид шудааст (useAuth)
+player.jsx    ← як <audio> барои тамоми сайт (usePlayer): пахш, суръат, вақтсанҷи хоб, сабти пешрафт
+hooks.js      ← useApi("/books") — бор кардани маълумот
+pages/        ← Welcome, Login/Register, Home, Search, Book, Player, Reader, Library, Profile
+components/   ← Header, BottomNav, MiniPlayer, Cover, Stars, Modal ...
+```
 
 ## Сохтор
 

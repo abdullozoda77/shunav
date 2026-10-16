@@ -1,0 +1,66 @@
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth.jsx";
+import Icon from "../components/Icon.jsx";
+import { formatDuration } from "../format.js";
+import { useApi } from "../hooks.js";
+import { LoginFirst } from "./Library.jsx";
+
+export default function Profile() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { data: stats } = useApi(user ? "/me/stats" : null);
+
+  if (!user) return <LoginFirst />;
+
+  const items = [
+    { icon: "schedule", label: "Гӯш карда шуд", value: stats ? formatDuration(stats.listened_seconds) : "…", color: "text-primary" },
+    { icon: "auto_stories", label: "Китобҳои оғозшуда", value: stats?.books_started ?? "…", color: "text-secondary" },
+    { icon: "task_alt", label: "Анҷомёфта", value: stats?.books_finished ?? "…", color: "text-primary" },
+    { icon: "favorite", label: "Дилхоҳ", value: stats?.favorites ?? "…", color: "text-error" },
+    { icon: "bookmark", label: "Хатчӯбҳо", value: stats?.bookmarks ?? "…", color: "text-secondary" },
+    { icon: "rate_review", label: "Тақризҳо", value: stats?.reviews ?? "…", color: "text-primary" },
+  ];
+
+  return (
+    <div className="px-4 pt-3 pb-8 flex flex-col gap-5">
+      <section className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-high">
+        <div className="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center font-serif text-headline-md font-bold">{user.name[0]}</div>
+        <div className="min-w-0">
+          <h1 className="font-serif text-headline-md truncate">{user.name}</h1>
+          <p className="text-body-sm text-on-surface-variant truncate">@{user.username} • {user.email}</p>
+          {user.is_admin && <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-secondary/15 text-secondary text-label-sm">Админ</span>}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="font-serif text-headline-sm mb-3">Омори ман</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {items.map((item) => (
+            <div key={item.label} className="p-3 rounded-xl bg-surface-container flex flex-col gap-1">
+              <Icon name={item.icon} size={20} className={item.color} />
+              <span className="text-label-lg font-bold">{item.value}</span>
+              <span className="text-label-sm text-on-surface-variant">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {user.is_admin && (
+        <a href="/api/docs" target="_blank" rel="noreferrer" className="h-12 rounded-xl bg-surface-container-high flex items-center justify-between px-4">
+          <span className="flex items-center gap-3"><Icon name="admin_panel_settings" className="text-secondary" /> Идоракунӣ (API docs)</span>
+          <Icon name="open_in_new" size={18} />
+        </a>
+      )}
+
+      <button
+        onClick={() => {
+          logout();
+          navigate("/welcome");
+        }}
+        className="h-12 rounded-xl bg-surface-container text-error flex items-center justify-center gap-2"
+      >
+        <Icon name="logout" size={20} /> Баромадан
+      </button>
+    </div>
+  );
+}
