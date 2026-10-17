@@ -1,2 +1,8 @@
 shekar
 pillow
+# generate_audio.py (on Windows/Linux without an NVIDIA card, CPU torch is smaller:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu)
+torch
+transformers
+lameenc
+numpy
