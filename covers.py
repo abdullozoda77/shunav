@@ -1,5 +1,7 @@
 """Book covers.
 
+0. Photos of real Tajik editions (PHOTO_COVERS, files in cover-photos/). These belong to their publishers:
+   fine for this project, but ask the publisher before putting the site online for everyone.
 1. "Tajik edition" covers (TAJIK_COVERS): leather-and-gold cover art made with Figma AI (cover-art/), with the
    title and author written on it here in the Philosopher font (so the Tajik letters are always right).
 2. Otherwise a real Persian miniature from The Metropolitan Museum of Art (Open Access, public domain / CC0).
@@ -43,6 +45,13 @@ MAX_WIDTH = 600
 TAJIK_COVERS = {
     'Гулистон': ('golestan.jpg', (0.065, 0.05, 0.94, 0.955), (0.335, 0.633, 0.681, 0.733), 'dark', 'ГУЛИСТОН', 'Саъдии Шерозӣ'),
     'Бӯстон': ('boostan.jpg', (0.08, 0.07, 0.92, 0.95), (0.29, 0.54, 0.76, 0.79), 'gold', 'БӮСТОН', 'Саъдии Шерозӣ'),
+}
+
+# title -> photo in cover-photos/ (sent by the project owner)
+PHOTO_COVERS = {
+    'Шоҳнома': 'shohnoma.jpg',
+    'Шоҳнома (достонҳои интихобӣ)': 'shohnoma.jpg',
+    'Маснавии маънавӣ. Дафтари аввал': 'masnavi.jpg',
 }
 
 INKS = {
@@ -125,8 +134,21 @@ def make_tajik_cover(art, crop, panel, lettering, title, author):
     return f'/{COVERS_DIR}/{name}'
 
 
+def make_photo_cover(file_name):
+    """A photo of a real edition: just resized and saved; returns the URL."""
+    os.makedirs(COVERS_DIR, exist_ok=True)
+    image = Image.open(f'cover-photos/{file_name}').convert('RGB')
+    if image.width > MAX_WIDTH:
+        image = image.resize((MAX_WIDTH, round(image.height * MAX_WIDTH / image.width)), Image.LANCZOS)
+    name = f'photo-{file_name}'
+    image.save(f'{COVERS_DIR}/{name}', quality=90, optimize=True)
+    return f'/{COVERS_DIR}/{name}'
+
+
 def cover_for(title):
-    """The best cover we have for a book title (or None)."""
+    """The best cover we have for a book title (or None): photo, then Tajik-style art, then museum painting."""
+    if title in PHOTO_COVERS:
+        return make_photo_cover(PHOTO_COVERS[title])
     if title in TAJIK_COVERS:
         return make_tajik_cover(*TAJIK_COVERS[title])
     if title in COVERS:
