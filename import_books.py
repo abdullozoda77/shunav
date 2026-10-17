@@ -288,6 +288,8 @@ def tidy_line(line):
     if not line or len(line) > 80:  # prose paragraph: keep as it is
         return line
     line = line.rstrip(' ,.')
+    if not line:  # the line was only punctuation (e.g. "...")
+        return ''
     return line[0].upper() + line[1:]
 
 
@@ -358,9 +360,8 @@ def save_book(db, book, plan, convert):
         db.add(Chapter(book_id=new_book.id, order=order, title=chapter_title, text=text, audio_status='pending'))
 
     # its cover (a miniature from The Met, see covers.py)
-    from covers import COVERS, make_cover
-    if book['title'] in COVERS:
-        new_book.cover = make_cover(*COVERS[book['title']])
+    from covers import cover_for
+    new_book.cover = cover_for(book['title'])
     db.commit()
 
 

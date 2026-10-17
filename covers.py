@@ -1,4 +1,8 @@
-"""Book covers: real Persian miniatures from The Metropolitan Museum of Art (Open Access, public domain / CC0).
+"""Book covers.
+
+1. "Tajik edition" covers (TAJIK_COVERS): leather-and-gold cover art made with Figma AI (cover-art/), with the
+   title and author written on it here in the Philosopher font (so the Tajik letters are always right).
+2. Otherwise a real Persian miniature from The Metropolitan Museum of Art (Open Access, public domain / CC0).
 
     .venv/bin/python covers.py
 
@@ -10,7 +14,7 @@ import json
 import os
 import urllib.request
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from database import SessionLocal
 from models import Book
@@ -33,6 +37,18 @@ COVERS = {
 }
 
 MAX_WIDTH = 600
+
+# title -> (art file, crop of the book, title panel, lettering, title text, author text); boxes are parts of the image
+# lettering: "dark" = dark brown letters on a gold panel, "gold" = gold letters on leather
+TAJIK_COVERS = {
+    'Гулистон': ('golestan.jpg', (0.065, 0.05, 0.94, 0.955), (0.335, 0.633, 0.681, 0.733), 'dark', 'ГУЛИСТОН', 'Саъдии Шерозӣ'),
+    'Бӯстон': ('boostan.jpg', (0.08, 0.07, 0.92, 0.95), (0.29, 0.54, 0.76, 0.79), 'gold', 'БӮСТОН', 'Саъдии Шерозӣ'),
+}
+
+INKS = {
+    'dark': {'text': (58, 34, 6), 'edge': (255, 226, 150)},     # pressed into gold
+    'gold': {'text': (236, 196, 108), 'edge': (40, 24, 4)},     # gold foil on leather
+}
 
 
 def download(object_id):
@@ -67,13 +83,63 @@ def make_cover(object_id, crop):
     return f'/{COVERS_DIR}/{name}'
 
 
+def make_tajik_cover(art, crop, panel, lettering, title, author):
+    """Write the title and author on the cover art, crop to the book and save; returns the URL."""
+    os.makedirs(COVERS_DIR, exist_ok=True)
+    image = Image.open(f'cover-art/{art}').convert('RGB')
+    width, height = image.size
+    draw = ImageDraw.Draw(image)
+
+    left, top, right, bottom = (int(panel[0] * width), int(panel[1] * height), int(panel[2] * width), int(panel[3] * height))
+    center = (left + right) / 2
+    max_text_width = (right - left) * 0.86
+    ink = INKS[lettering]
+
+    def font_that_fits(text, file, size):
+        while size > 12:
+            font = ImageFont.truetype(f'fonts/{file}', size)
+            if draw.textlength(text, font=font) <= max_text_width:
+                return font
+            size -= 2
+        return ImageFont.truetype(f'fonts/{file}', 12)
+
+    title_font = font_that_fits(title, 'Philosopher-Bold.ttf', int(width * 0.075))
+    author_font = font_that_fits(author, 'Philosopher-Regular.ttf', int(title_font.size * 0.5))
+
+    # the two lines together, in the middle of the panel
+    gap = title_font.size * 0.35
+    block_height = title_font.size + gap + author_font.size
+    y = top + ((bottom - top) - block_height) / 2 - title_font.size * 0.1
+    for text, font in ((title, title_font), (author, author_font)):
+        x = center - draw.textlength(text, font=font) / 2
+        draw.text((x + 1, y + 1), text, font=font, fill=ink['edge'])  # a thin edge, like pressed or foil letters
+        draw.text((x, y), text, font=font, fill=ink['text'])
+        y += font.size + gap
+
+    image = image.crop((int(crop[0] * width), int(crop[1] * height), int(crop[2] * width), int(crop[3] * height)))
+    if image.width > MAX_WIDTH:
+        image = image.resize((MAX_WIDTH, round(image.height * MAX_WIDTH / image.width)), Image.LANCZOS)
+
+    name = f'tajik-{art.rsplit(".", 1)[0]}.jpg'
+    image.save(f'{COVERS_DIR}/{name}', quality=88, optimize=True)
+    return f'/{COVERS_DIR}/{name}'
+
+
+def cover_for(title):
+    """The best cover we have for a book title (or None)."""
+    if title in TAJIK_COVERS:
+        return make_tajik_cover(*TAJIK_COVERS[title])
+    if title in COVERS:
+        return make_cover(*COVERS[title])
+    return None
+
+
 def apply_covers(db):
     for book in db.query(Book).all():
-        if book.title not in COVERS:
-            continue
-        object_id, crop = COVERS[book.title]
-        book.cover = make_cover(object_id, crop)
-        print(f'{book.title}: {book.cover}')
+        cover = cover_for(book.title)
+        if cover:
+            book.cover = cover
+            print(f'{book.title}: {book.cover}')
     db.commit()
 
 
