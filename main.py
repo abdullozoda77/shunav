@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from config import CORS_ORIGINS, MEDIA_DIR
 from database import Base, engine
-from routers import admin, authors, bookmarks, books, categories, chapters, favorites, listening, narrators, reports, reviews, users
+from routers import admin, authors, bookmarks, books, categories, chapters, favorites, listening, narrators, reports, reviews, stats, users
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,7 +23,6 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-# Covers and audio files. StaticFiles answers Range requests, so the player can jump inside an mp3.
 os.makedirs(MEDIA_DIR, exist_ok=True)
 app.mount('/media', StaticFiles(directory=MEDIA_DIR), name='media')
 
@@ -39,6 +38,7 @@ app.include_router(favorites.router)
 app.include_router(reviews.router)
 app.include_router(reports.router)
 app.include_router(admin.router)
+app.include_router(stats.router)
 
 
 @app.get('/', tags=['Home'])

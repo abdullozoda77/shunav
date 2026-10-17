@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../auth.jsx";
 import Cover from "../components/Cover.jsx";
+import Footer from "../components/Footer.jsx";
 import Header from "../components/Header.jsx";
 import Icon from "../components/Icon.jsx";
 import MiniPlayer from "../components/MiniPlayer.jsx";
@@ -399,7 +400,8 @@ function Page({ children, onShare }) {
           )
         }
       />
-      <main className="pt-16 md:pt-[72px] pb-32 min-h-screen max-w-3xl lg:max-w-7xl mx-auto">{children}</main>
+      <main className="pt-16 md:pt-[72px] min-h-screen max-w-3xl lg:max-w-7xl mx-auto">{children}</main>
+      <Footer />
       <MiniPlayer />
     </>
   );

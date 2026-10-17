@@ -35,6 +35,7 @@ export default function Home() {
   const { data: categories } = useApi("/categories");
   const { data: newBooks, loading } = useApi(`/books?page_size=12${categoryId ? `&category_id=${categoryId}` : ""}`);
   const { data: topBooks } = useApi("/books?sort_by=rating&order=desc&page_size=5");
+  const { data: stats } = useApi("/stats");
   const { data: heroBooks } = useApi("/books?sort_by=rating&order=desc&page_size=50");
   const { data: allAuthors } = useApi("/authors?sort_by=birth_year&order=asc&page_size=100");
   const authors = allAuthors?.filter((author) => author.photo); // oldest first, only those with a portrait
@@ -217,8 +218,9 @@ export default function Home() {
 
       {/* Top rated + verse of the day */}
       <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-        {topBooks?.length > 0 && (
-          <section className="lg:col-span-2 flex flex-col gap-3 md:gap-5">
+        <div className="lg:col-span-2 flex flex-col gap-6 md:gap-8">
+          {topBooks?.length > 0 && (
+          <section className="flex flex-col gap-3 md:gap-5">
             <SectionTitle icon="military_tech" iconColor="text-secondary" title="Беҳтаринҳо" />
             <div className="grid md:grid-cols-2 lg:grid-cols-1 gap-2 md:gap-3">
               {topBooks.map((book, index) => (
@@ -250,7 +252,55 @@ export default function Home() {
               ))}
             </div>
           </section>
-        )}
+          )}
+
+          {/* the library in numbers */}
+          {stats && (
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { icon: "auto_stories", value: stats.books, label: "китоб", color: "text-primary" },
+                { icon: "history_edu", value: stats.authors, label: "муаллиф", color: "text-secondary" },
+                { icon: "menu_book", value: stats.chapters, label: "боб", color: "text-primary" },
+                { icon: "headphones", value: formatDuration(stats.audio_seconds), label: "аудио", color: "text-secondary" },
+              ].map((item) => (
+                <div key={item.label} className="p-4 rounded-2xl bg-surface-container flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-surface-container-highest flex items-center justify-center shrink-0">
+                    <Icon name={item.icon} size={22} className={item.color} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-serif text-headline-sm leading-none truncate">{item.value}</p>
+                    <p className="text-label-sm text-on-surface-variant mt-1">{item.label}</p>
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {/* genres: one picture card each */}
+          {stats?.genres.length > 0 && (
+            <section className="flex flex-col gap-3 md:gap-5">
+              <SectionTitle icon="category" iconColor="text-secondary" title="Жанрҳо" link="/search" linkText="Ҳама китобҳо" />
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {stats.genres.map((genre) => (
+                  <Link
+                    key={genre.id}
+                    to={`/search?category_id=${genre.id}`}
+                    className="group relative h-32 rounded-2xl overflow-hidden border border-primary/20 hover:border-primary hover:shadow-[0_0_24px_rgba(255,192,65,0.35)] transition-all duration-300"
+                  >
+                    {genre.cover && (
+                      <img src={genre.cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="font-serif text-label-lg group-hover:text-primary">{genre.name}</p>
+                      <p className="text-label-sm text-on-surface-variant">{genre.books} китоб</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
 
         <aside className="flex flex-col gap-4 lg:pt-14">
           <section className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-surface-container-high to-surface-container flex flex-col gap-3 shadow-md relative overflow-hidden">

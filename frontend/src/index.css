@@ -37,21 +37,14 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Background of books (BooksBackground.jsx): the pattern drifts, the big books float */
-@keyframes pattern-drift {
-  from { transform: translate(0, 0); }
-  to { transform: translate(160px, 160px); }
+/* Background of books (BooksBackground.jsx): each book turns its right page over and back */
+@keyframes page-turn {
+  0%, 30% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  80%, 100% { transform: scaleX(1); }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(-4deg); }
-  50% { transform: translateY(-14px) rotate(4deg); }
-}
-
-.animate-pattern-drift {
-  animation: pattern-drift 40s linear infinite;
-}
-
-.animate-float {
-  animation: float 7s ease-in-out infinite;
+.page-turn {
+  transform-origin: 24px 0; /* the spine of the book */
+  animation: page-turn 6s ease-in-out infinite;
 }
