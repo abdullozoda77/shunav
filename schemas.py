@@ -102,6 +102,9 @@ class AuthorCreate(BaseModel):
 
 class AuthorRead(ORMModel, AuthorCreate):
     id: int
+    photo: str | None = None
+    photo_credit: str | None = None
+    books_count: int = 0
 
 
 class CategoryCreate(BaseModel):

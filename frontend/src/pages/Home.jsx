@@ -4,6 +4,7 @@ import { useAuth } from "../auth.jsx";
 import BookCard from "../components/BookCard.jsx";
 import Cover from "../components/Cover.jsx";
 import GirihBackground from "../components/GirihBackground.jsx";
+import AuthorCarousel from "../components/AuthorCarousel.jsx";
 import HeroCarousel from "../components/HeroCarousel.jsx";
 import Icon from "../components/Icon.jsx";
 import ProgressRing from "../components/ProgressRing.jsx";
@@ -35,6 +36,8 @@ export default function Home() {
   const { data: newBooks, loading } = useApi(`/books?page_size=12${categoryId ? `&category_id=${categoryId}` : ""}`);
   const { data: topBooks } = useApi("/books?sort_by=rating&order=desc&page_size=5");
   const { data: heroBooks } = useApi("/books?sort_by=rating&order=desc&page_size=50");
+  const { data: allAuthors } = useApi("/authors?sort_by=birth_year&order=asc&page_size=100");
+  const authors = allAuthors?.filter((author) => author.photo); // oldest first, only those with a portrait
 
   // the banner shows one book at a time and moves on by itself (it waits while the mouse is over it)
   const [heroIndex, setHeroIndex] = useState(0);
@@ -60,9 +63,23 @@ export default function Home() {
         onMouseEnter={() => setHeroPaused(true)}
         onMouseLeave={() => setHeroPaused(false)}
         className="relative md:rounded-3xl md:overflow-hidden md:bg-surface-container-low md:p-10 lg:p-14 md:shadow-2xl">
-        <div className="hidden md:block absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_40%,rgba(255,192,65,0.18),rgba(79,219,200,0.06)_40%,transparent_70%)]" />
-          <GirihBackground className="opacity-[0.04]" />
+        {/* background: the current book's painting, blurred, slowly drifting; it fades into the next book's */}
+        <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden">
+          {heroBooks?.map((book, index) =>
+            book.cover ? (
+              <img
+                key={book.id}
+                src={book.cover}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover blur-xl animate-drift transition-opacity duration-1000"
+                style={{ opacity: index === heroIndex ? 0.45 : 0 }}
+              />
+            ) : null
+          )}
+          {/* darker on the left, so the text stays easy to read */}
+          <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low via-surface-container-low/85 to-surface-container-low/40" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(255,192,65,0.16),transparent_60%)]" />
+          <GirihBackground className="opacity-[0.05]" />
         </div>
 
         <div className="relative grid md:grid-cols-[1fr_auto] gap-8 md:gap-12 items-center">
@@ -245,6 +262,8 @@ export default function Home() {
             <p className="relative font-serif text-verse md:text-[20px] md:leading-[36px] italic">«{verse.text}»</p>
             <span className="relative text-label-sm text-secondary">— {verse.author}</span>
           </section>
+
+          {authors?.length > 0 && <AuthorCarousel authors={authors} />}
 
           {!user && (
             <section className="p-5 md:p-6 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col gap-3">

@@ -51,10 +51,12 @@ export default {
       keyframes: {
         eq: { "0%,100%": { height: "4px" }, "50%": { height: "14px" } },
         "fade-up": { from: { opacity: "0", transform: "translateY(12px)" }, to: { opacity: "1", transform: "translateY(0)" } },
+        drift: { from: { transform: "scale(1.15) translate(0, 0)" }, to: { transform: "scale(1.3) translate(-4%, -3%)" } },
       },
       animation: {
         eq: "eq 1s ease-in-out infinite",
         "fade-up": "fade-up 0.6s ease-out",
+        drift: "drift 24s ease-in-out infinite alternate",
       },
     },
   },

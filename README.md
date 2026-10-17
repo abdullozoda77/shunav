@@ -80,3 +80,11 @@ routers/
 ```bash
 .venv/bin/python covers.py
 ```
+
+## Расми муаллифон (portraits.py)
+
+Портретҳо аз Wikimedia Commons (public domain; акси муҷассамаи Хайём — CC BY 3.0, муаллифаш дар сайт навишта шудааст):
+
+```bash
+.venv/bin/python portraits.py
+```

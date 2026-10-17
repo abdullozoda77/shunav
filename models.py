@@ -34,8 +34,14 @@ class Author(Base):
     birth_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # Needed to check the book is public domain (50-70 years after death).
     death_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    photo: Mapped[str | None] = mapped_column(String, nullable=True)
+    photo_credit: Mapped[str | None] = mapped_column(String, nullable=True)  # who made the picture (some licenses ask for it)
 
     books: Mapped[list["Book"]] = relationship(back_populates="author")
+
+    @property
+    def books_count(self) -> int:
+        return sum(1 for book in self.books if book.is_published)
 
 
 class Category(Base):
