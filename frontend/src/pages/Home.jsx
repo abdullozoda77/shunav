@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import BookCard from "../components/BookCard.jsx";
 import Cover from "../components/Cover.jsx";
+import GenreCard from "../components/GenreCard.jsx";
 import BooksBackground from "../components/BooksBackground.jsx";
 import AuthorCarousel from "../components/AuthorCarousel.jsx";
 import HeroCarousel from "../components/HeroCarousel.jsx";
@@ -277,26 +278,13 @@ export default function Home() {
             </section>
           )}
 
-          {/* genres: one picture card each */}
+          {/* genres: an emblem and a colour each */}
           {stats?.genres.length > 0 && (
             <section className="flex flex-col gap-3 md:gap-5">
               <SectionTitle icon="category" iconColor="text-secondary" title="Жанрҳо" link="/search" linkText="Ҳама китобҳо" />
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {stats.genres.map((genre) => (
-                  <Link
-                    key={genre.id}
-                    to={`/search?category_id=${genre.id}`}
-                    className="group relative h-32 rounded-2xl overflow-hidden border border-primary/20 hover:border-primary hover:shadow-[0_0_24px_rgba(255,192,65,0.35)] transition-all duration-300"
-                  >
-                    {genre.cover && (
-                      <img src={genre.cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent" />
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <p className="font-serif text-label-lg group-hover:text-primary">{genre.name}</p>
-                      <p className="text-label-sm text-on-surface-variant">{genre.books} китоб</p>
-                    </div>
-                  </Link>
+                  <GenreCard key={genre.id} genre={genre} />
                 ))}
               </div>
             </section>
