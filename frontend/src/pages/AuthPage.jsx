@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
-import GirihBackground from "../components/GirihBackground.jsx";
+import BooksBackground from "../components/BooksBackground.jsx";
 import Icon from "../components/Icon.jsx";
 
 // Login and register share one page. mode = "login" | "register"
@@ -38,7 +38,7 @@ export default function AuthPage({ mode }) {
     <main className="min-h-screen md:grid md:grid-cols-2">
       {/* decorative half (wide screens) */}
       <div className="hidden md:flex relative overflow-hidden bg-surface-container-low flex-col justify-end p-12 lg:p-16">
-        <GirihBackground className="opacity-[0.06]" />
+        <BooksBackground className="opacity-[0.16]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_35%,rgba(255,192,65,0.22),rgba(79,219,200,0.06)_45%,transparent_70%)]" />
         <div className="relative">
           <Icon name="format_quote" size={48} className="text-primary" />

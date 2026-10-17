@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../auth.jsx";
 import Cover from "../components/Cover.jsx";
-import GirihBackground from "../components/GirihBackground.jsx";
+import BooksBackground from "../components/BooksBackground.jsx";
 import Header from "../components/Header.jsx";
 import Icon from "../components/Icon.jsx";
 import Modal from "../components/Modal.jsx";
@@ -63,7 +63,7 @@ export default function Player() {
       <div className="absolute inset-0 pointer-events-none">
         <Cover book={book} showTitle={false} frame={false} className="absolute -inset-10 blur-3xl opacity-25 scale-110" />
         <div className="absolute inset-0 bg-gradient-to-b from-surface via-surface/90 to-surface-container-lowest" />
-        <GirihBackground className="opacity-[0.035]" />
+        <BooksBackground className="opacity-[0.08]" />
       </div>
 
       {/* wide screens get the normal site header; phones get the player's own top bar */}

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import BookCard from "../components/BookCard.jsx";
 import Cover from "../components/Cover.jsx";
-import GirihBackground from "../components/GirihBackground.jsx";
+import BooksBackground from "../components/BooksBackground.jsx";
 import AuthorCarousel from "../components/AuthorCarousel.jsx";
 import HeroCarousel from "../components/HeroCarousel.jsx";
 import Icon from "../components/Icon.jsx";
@@ -79,7 +79,7 @@ export default function Home() {
           {/* darker on the left, so the text stays easy to read */}
           <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low via-surface-container-low/85 to-surface-container-low/40" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(255,192,65,0.16),transparent_60%)]" />
-          <GirihBackground className="opacity-[0.05]" />
+          <BooksBackground className="opacity-[0.14]" />
         </div>
 
         <div className="relative grid md:grid-cols-[1fr_auto] gap-8 md:gap-12 items-center">

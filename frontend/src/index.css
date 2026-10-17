@@ -36,3 +36,22 @@ body {
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* Background of books (BooksBackground.jsx): the pattern drifts, the big books float */
+@keyframes pattern-drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(160px, 160px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-14px) rotate(4deg); }
+}
+
+.animate-pattern-drift {
+  animation: pattern-drift 40s linear infinite;
+}
+
+.animate-float {
+  animation: float 7s ease-in-out infinite;
+}
