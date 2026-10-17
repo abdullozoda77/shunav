@@ -61,7 +61,7 @@ export default function Player() {
     <main className="relative min-h-screen overflow-hidden pt-safe pb-safe select-none">
       {/* Background: blurred cover + star pattern */}
       <div className="absolute inset-0 pointer-events-none">
-        <Cover book={book} showTitle={false} className="absolute -inset-10 blur-3xl opacity-25 scale-110" />
+        <Cover book={book} showTitle={false} frame={false} className="absolute -inset-10 blur-3xl opacity-25 scale-110" />
         <div className="absolute inset-0 bg-gradient-to-b from-surface via-surface/90 to-surface-container-lowest" />
         <GirihBackground className="opacity-[0.035]" />
       </div>

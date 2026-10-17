@@ -356,6 +356,11 @@ def save_book(db, book, plan, convert):
     for order, (chapter_title, poem_ids) in enumerate(plan, start=1):
         text = build_text(book, poem_ids, convert, numbers)
         db.add(Chapter(book_id=new_book.id, order=order, title=chapter_title, text=text, audio_status='pending'))
+
+    # its cover (a miniature from The Met, see covers.py)
+    from covers import COVERS, make_cover
+    if book['title'] in COVERS:
+        new_book.cover = make_cover(*COVERS[book['title']])
     db.commit()
 
 

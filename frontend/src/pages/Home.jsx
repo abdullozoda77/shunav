@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import BookCard from "../components/BookCard.jsx";
 import Cover from "../components/Cover.jsx";
 import GirihBackground from "../components/GirihBackground.jsx";
+import HeroCarousel from "../components/HeroCarousel.jsx";
 import Icon from "../components/Icon.jsx";
 import ProgressRing from "../components/ProgressRing.jsx";
 import Spinner from "../components/Spinner.jsx";
@@ -16,6 +17,8 @@ const VERSES = [
   { text: "Бӯи Ҷӯи Мӯлиён ояд ҳаме, ёди ёри меҳрубон ояд ҳаме.", author: "Рӯдакӣ" },
   { text: "Тавоно бувад ҳар ки доно бувад, зи дониш дили пир барно бувад.", author: "Фирдавсӣ" },
 ];
+
+const HERO_SECONDS = 6;
 
 // Phones: a sideways-scrolling row. Wide screens: a normal grid.
 const ROW = "flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory md:mx-0 md:px-0 md:grid md:overflow-visible md:gap-5";
@@ -31,8 +34,18 @@ export default function Home() {
   const { data: categories } = useApi("/categories");
   const { data: newBooks, loading } = useApi(`/books?page_size=12${categoryId ? `&category_id=${categoryId}` : ""}`);
   const { data: topBooks } = useApi("/books?sort_by=rating&order=desc&page_size=5");
+  const { data: heroBooks } = useApi("/books?sort_by=rating&order=desc&page_size=50");
 
-  const featured = topBooks?.[0];
+  // the banner shows one book at a time and moves on by itself (it waits while the mouse is over it)
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
+  useEffect(() => {
+    if (heroPaused || !heroBooks?.length) return;
+    const timer = setInterval(() => setHeroIndex((index) => (index + 1) % heroBooks.length), HERO_SECONDS * 1000);
+    return () => clearInterval(timer);
+  }, [heroPaused, heroBooks]);
+
+  const featured = heroBooks?.[heroIndex];
   const verse = VERSES[new Date().getDate() % VERSES.length]; // a new verse every day
 
   function submitSearch(event) {
@@ -43,7 +56,10 @@ export default function Home() {
   return (
     <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-6 md:gap-12">
       {/* Hero: greeting + featured book */}
-      <section className="relative md:rounded-3xl md:overflow-hidden md:bg-surface-container-low md:p-10 lg:p-14 md:shadow-2xl">
+      <section
+        onMouseEnter={() => setHeroPaused(true)}
+        onMouseLeave={() => setHeroPaused(false)}
+        className="relative md:rounded-3xl md:overflow-hidden md:bg-surface-container-low md:p-10 lg:p-14 md:shadow-2xl">
         <div className="hidden md:block absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_40%,rgba(255,192,65,0.18),rgba(79,219,200,0.06)_40%,transparent_70%)]" />
           <GirihBackground className="opacity-[0.04]" />
@@ -73,15 +89,15 @@ export default function Home() {
 
             {/* featured book: a card on phones, part of the hero on wide screens */}
             {featured && (
-              <div className="rounded-2xl overflow-hidden bg-surface-container-low md:bg-transparent shadow-xl md:shadow-none mt-2">
+              <div key={featured.id} className="animate-fade-up rounded-2xl overflow-hidden bg-surface-container-low md:bg-transparent shadow-xl md:shadow-none mt-2">
                 <div className="relative aspect-[16/9] md:hidden overflow-hidden">
-                  <Cover book={featured} showTitle={false} className="w-full h-full" />
+                  <Cover book={featured} showTitle={false} frame={false} className="w-full h-full" />
                   <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/40 to-transparent" />
                 </div>
                 <div className="p-4 md:p-0 flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/90 text-on-primary text-label-sm font-bold">
-                      <Icon name="stars" filled size={15} /> Интихоби ҳафта
+                      <Icon name="auto_stories" filled size={15} /> Китоби {heroIndex + 1} аз {heroBooks.length}
                     </span>
                     {featured.narrator && (
                       <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-label-sm">
@@ -111,25 +127,8 @@ export default function Home() {
             )}
           </div>
 
-          {/* fanned covers (wide screens) */}
-          {topBooks?.length > 0 && (
-            <div className="hidden md:flex relative w-[340px] lg:w-[420px] h-[360px] lg:h-[420px] items-center justify-center">
-              <div className="absolute w-80 h-80 rounded-full border-2 border-dashed border-primary/20 animate-spin" style={{ animationDuration: "40s" }} />
-              {topBooks[1] && (
-                <Link to={`/books/${topBooks[1].id}`} className="absolute -translate-x-28 -rotate-12 opacity-80 hover:opacity-100 transition">
-                  <Cover book={topBooks[1]} className="w-36 lg:w-40 aspect-[3/4.4] rounded-xl shadow-2xl" />
-                </Link>
-              )}
-              {topBooks[2] && (
-                <Link to={`/books/${topBooks[2].id}`} className="absolute translate-x-28 rotate-12 opacity-80 hover:opacity-100 transition">
-                  <Cover book={topBooks[2]} className="w-36 lg:w-40 aspect-[3/4.4] rounded-xl shadow-2xl" />
-                </Link>
-              )}
-              <Link to={`/books/${featured.id}`} className="relative z-10 hover:scale-105 transition-transform">
-                <Cover book={featured} className="w-48 lg:w-56 aspect-[3/4.4] rounded-xl shadow-[0_24px_50px_-12px_rgba(0,0,0,0.85),0_0_35px_rgba(224,165,38,0.2)]" />
-              </Link>
-            </div>
-          )}
+          {/* all books as a turning fan (wide screens) */}
+          {heroBooks?.length > 0 && <HeroCarousel books={heroBooks} current={heroIndex} onChange={setHeroIndex} />}
         </div>
       </section>
 
@@ -139,7 +138,7 @@ export default function Home() {
           <SectionTitle dot title="Идома додан" link="/library" linkText="Китобхона" />
           <div className={`${ROW} md:grid-cols-2 lg:grid-cols-3`}>
             {continueList.slice(0, 6).map(({ book, chapter, position_seconds }, index) => (
-              <div key={book.id} className="w-[82vw] max-w-[320px] md:w-auto md:max-w-none shrink-0 snap-center bg-surface-container-high rounded-xl p-3.5 md:p-5 shadow-lg hover:bg-surface-container-highest transition-colors">
+              <div key={book.id} className="group w-[82vw] max-w-[320px] md:w-auto md:max-w-none shrink-0 snap-center bg-surface-container-high rounded-xl p-3.5 md:p-5 shadow-lg hover:bg-surface-container-highest transition-colors">
                 <Link to={`/books/${book.id}`} className="flex items-start gap-3 md:gap-4">
                   <Cover book={book} showTitle={false} className="w-14 h-[72px] md:w-16 md:h-[84px] rounded-lg shrink-0" />
                   <div className="flex flex-col min-w-0 flex-1">
@@ -206,7 +205,7 @@ export default function Home() {
             <SectionTitle icon="military_tech" iconColor="text-secondary" title="Беҳтаринҳо" />
             <div className="grid md:grid-cols-2 lg:grid-cols-1 gap-2 md:gap-3">
               {topBooks.map((book, index) => (
-                <div key={book.id} className="flex items-center justify-between p-3 md:p-4 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors">
+                <div key={book.id} className="group flex items-center justify-between p-3 md:p-4 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors">
                   <Link to={`/books/${book.id}`} className="flex items-center gap-3 md:gap-4 min-w-0">
                     <span className={`font-serif text-headline-sm font-bold w-6 text-center ${["text-primary", "text-secondary", "text-tertiary"][index] || "text-outline"}`}>
                       {index + 1}

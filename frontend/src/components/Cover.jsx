@@ -1,4 +1,4 @@
-// Book cover: the uploaded picture, or a drawn manuscript-style cover when there is none.
+// Book cover: the book's picture (see covers.py), or a drawn manuscript-style cover when there is none.
 const PALETTES = [
   ["#1b2a4a", "#ffc041"],
   ["#0e3b3a", "#4fdbc8"],
@@ -7,9 +7,18 @@ const PALETTES = [
   ["#2d2414", "#ffdea8"],
 ];
 
-export default function Cover({ book, className = "", showTitle = true }) {
+// Thin gold border; glows when the mouse is over the cover (or over a card around it with class "group")
+const FRAME =
+  "border border-primary/30 shadow-lg transition-all duration-300 " +
+  "hover:border-primary hover:shadow-[0_0_28px_rgba(255,192,65,0.45)] hover:-translate-y-1 " +
+  "group-hover:border-primary group-hover:shadow-[0_0_28px_rgba(255,192,65,0.45)] group-hover:-translate-y-1 group-hover:brightness-110";
+
+// frame={false} for decorative use (e.g. the blurred background of the player)
+export default function Cover({ book, className = "", showTitle = true, frame = true }) {
+  const frameClass = frame ? FRAME : "";
+
   if (book?.cover) {
-    return <img src={book.cover} alt={book.title} className={`object-cover ${className}`} />;
+    return <img src={book.cover} alt={book.title} loading="lazy" className={`object-cover ${frameClass} ${className}`} />;
   }
 
   const [background, accent] = PALETTES[(book?.id || 0) % PALETTES.length];
@@ -17,7 +26,7 @@ export default function Cover({ book, className = "", showTitle = true }) {
   const position = className.includes("absolute") ? "" : "relative";
   return (
     <div
-      className={`${position} overflow-hidden flex flex-col justify-end p-2 ${className}`}
+      className={`${position} overflow-hidden flex flex-col justify-end p-2 ${frameClass} ${className}`}
       style={{ background: `radial-gradient(circle at 50% 30%, ${accent}33, transparent 60%), ${background}` }}
     >
       <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 100 140" preserveAspectRatio="none">

@@ -52,7 +52,7 @@ function ContinueTab() {
   if (!data?.length) return <Empty icon="headphones" text="Шумо ҳоло ягон китоб гӯш накардаед." />;
 
   return data.map(({ book, chapter, position_seconds }) => (
-    <div key={book.id} className="flex items-center gap-3 p-3 rounded-xl bg-surface-container">
+    <div key={book.id} className="group flex items-center gap-3 p-3 rounded-xl bg-surface-container">
       <Link to={`/books/${book.id}`} className="flex items-center gap-3 flex-1 min-w-0">
         <Cover book={book} showTitle={false} className="w-12 h-16 rounded-lg shrink-0" />
         <div className="min-w-0">
@@ -80,7 +80,7 @@ function FavoritesTab() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
       {data.map(({ book }) => (
-        <Link key={book.id} to={`/books/${book.id}`} className="flex flex-col gap-2">
+        <Link key={book.id} to={`/books/${book.id}`} className="group flex flex-col gap-2">
           <Cover book={book} className="w-full aspect-[3/4] rounded-xl shadow-md" />
           <h4 className="font-serif text-label-lg truncate">{book.title}</h4>
         </Link>
