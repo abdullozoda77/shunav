@@ -33,7 +33,7 @@ export default {
       },
       // Both fonts have the full Cyrillic alphabet with the Tajik letters (ӣ ӯ ҷ ҳ қ ғ)
       fontFamily: {
-        serif: ["Philosopher", "Georgia", "serif"],
+        serif: ["Philosopher", "PT Serif", "Georgia", "serif"], // PT Serif only fills in Ҳ ҳ, which Philosopher lacks
         sans: ["Manrope", "system-ui", "sans-serif"],
       },
       fontSize: {
