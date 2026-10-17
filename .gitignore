@@ -8,3 +8,4 @@ media/audio/*
 frontend/node_modules/
 frontend/dist/
 .claude/
+/data/

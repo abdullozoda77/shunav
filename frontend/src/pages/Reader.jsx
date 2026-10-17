@@ -53,9 +53,7 @@ export default function Reader() {
   const previous = book?.chapters[index - 1];
   const next = book?.chapters[index + 1];
 
-  // a poem: lines are short, so center them like bayts
-  const lines = chapter?.text?.split("\n") || [];
-  const isPoem = lines.length > 1 && lines.every((line) => line.length < 70);
+  const sections = splitSections(chapter?.text || "");
 
   return (
     <div className={`min-h-screen ${THEMES[theme]}`}>
@@ -95,9 +93,44 @@ export default function Reader() {
               </button>
             )}
 
-            <article className={`font-serif whitespace-pre-line ${isPoem ? "text-center" : ""}`} style={{ fontSize: size, lineHeight: 1.9 }}>
-              {chapter.text || "Матни ин боб ҳоло илова нашудааст."}
-            </article>
+            {/* contents: jump to a story / ghazal inside a long chapter */}
+            {sections.length > 3 && (
+              <details className="mb-8 rounded-xl bg-surface-container text-on-surface">
+                <summary className="cursor-pointer p-4 text-label-lg flex items-center gap-2">
+                  <Icon name="list" size={20} className="text-primary" /> Мундариҷаи боб ({sections.length})
+                </summary>
+                <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-72 overflow-y-auto">
+                  {sections.map((section, index) => (
+                    <a key={index} href={`#part-${index}`} className="text-body-sm text-on-surface-variant hover:text-primary truncate py-1">
+                      {section.heading || "Аввал"}
+                    </a>
+                  ))}
+                </div>
+              </details>
+            )}
+
+            {sections.length === 0 && <p className="font-serif opacity-70">Матни ин боб ҳоло илова нашудааст.</p>}
+
+            {sections.map((section, index) => (
+              <section key={index} id={`part-${index}`} className="mb-10 scroll-mt-28">
+                {section.heading && (
+                  <h2 className="font-serif text-primary-container text-center mb-4 flex items-center justify-center gap-3" style={{ fontSize: size * 0.9 }}>
+                    <span className="h-px w-8 bg-current opacity-40" />
+                    {section.heading}
+                    <span className="h-px w-8 bg-current opacity-40" />
+                  </h2>
+                )}
+                {section.paragraphs.map((paragraph, i) => (
+                  <p
+                    key={i}
+                    className={`font-serif whitespace-pre-line mb-5 ${isVerse(paragraph) ? "text-center" : "text-justify"}`}
+                    style={{ fontSize: size, lineHeight: 1.9 }}
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+              </section>
+            ))}
 
             <div className="flex justify-between gap-3 mt-12">
               {previous ? (
@@ -113,4 +146,28 @@ export default function Reader() {
       <MiniPlayer />
     </div>
   );
+}
+
+// Chapter text -> [{heading, paragraphs}]. A line "◆ Ғазали 5" starts a new part; blank lines split paragraphs.
+function splitSections(text) {
+  const sections = [];
+  let current = { heading: "", paragraphs: [] };
+
+  for (const block of text.split(/\n\s*\n/)) {
+    const lines = block.split("\n");
+    if (lines[0].startsWith("◆ ")) {
+      if (current.heading || current.paragraphs.length) sections.push(current);
+      current = { heading: lines[0].slice(2).trim(), paragraphs: [] };
+      lines.shift();
+    }
+    const paragraph = lines.join("\n").trim();
+    if (paragraph) current.paragraphs.push(paragraph);
+  }
+  if (current.heading || current.paragraphs.length) sections.push(current);
+  return sections;
+}
+
+// Verse = every line is short (half-bayts). Prose paragraphs are long.
+function isVerse(paragraph) {
+  return paragraph.split("\n").every((line) => line.length < 70);
 }

@@ -114,6 +114,9 @@ class Chapter(Base):
     audio_status: Mapped[str] = mapped_column(String, default="pending")  # pending / processing / done / failed
 
     book: Mapped["Book"] = relationship(back_populates="chapters")
+    # deleting a chapter (or its book) also deletes everyone's progress and bookmarks in it
+    progress: Mapped[list["ListeningProgress"]] = relationship(back_populates="chapter", cascade="all, delete-orphan")
+    bookmarks: Mapped[list["Bookmark"]] = relationship(back_populates="chapter", cascade="all, delete-orphan")
 
     @property
     def book_title(self) -> str:
@@ -131,7 +134,7 @@ class ListeningProgress(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     user: Mapped["User"] = relationship(back_populates="progress")
-    chapter: Mapped["Chapter"] = relationship()
+    chapter: Mapped["Chapter"] = relationship(back_populates="progress")
 
 
 class Bookmark(Base):
@@ -145,7 +148,7 @@ class Bookmark(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="bookmarks")
-    chapter: Mapped["Chapter"] = relationship()
+    chapter: Mapped["Chapter"] = relationship(back_populates="bookmarks")
 
 
 class Favorite(Base):
