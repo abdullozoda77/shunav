@@ -82,21 +82,25 @@ export default function Home() {
           {/* darker on the left, so the text stays easy to read */}
           <div className="absolute inset-0 bg-gradient-to-r from-surface-container-low via-surface-container-low/85 to-surface-container-low/40" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(255,192,65,0.16),transparent_60%)]" />
-          <BooksBackground className="opacity-[0.14]" />
+          <BooksBackground className="opacity-[0.14]" style={{ maskImage: "linear-gradient(to right, transparent 35%, black 75%)" }} />
         </div>
 
         <div className="relative grid md:grid-cols-[1fr_auto] gap-8 md:gap-12 items-center">
-          <div className="flex flex-col gap-4 md:gap-5">
-            <div>
-              <h1 className="font-serif text-headline-lg-mobile md:text-[44px] md:leading-[52px] font-semibold tracking-tight">
+          <div className="flex flex-col gap-6 md:gap-7 min-w-0">
+            {/* greeting and search */}
+            <div className="flex flex-col gap-3">
+              <span className="flex items-center gap-2 text-label-sm uppercase tracking-[0.2em] text-primary">
+                <span className="w-6 h-px bg-primary" /> Китобхонаи савтӣ
+              </span>
+              <h1 className="font-serif text-headline-lg-mobile md:text-[46px] md:leading-[54px] font-semibold tracking-tight">
                 Салом{user ? `, ${user.name}` : ""} <span className="inline-block animate-bounce">👋</span>
               </h1>
-              <p className="text-body-sm md:text-body-md text-on-surface-variant mt-1 md:mt-3 max-w-xl">
-                Имрӯз чиро мешунавед? Классикони форсу тоҷик — аз Рӯдакӣ то Айнӣ — бо овоз ва матн, ройгон.
+              <p className="text-body-sm md:text-body-md text-on-surface-variant max-w-lg">
+                Классикони форсу тоҷик — аз Рӯдакӣ то Айнӣ — бо матни пурра ва овоз.
               </p>
             </div>
 
-            <form onSubmit={submitSearch} className="flex items-center w-full max-w-xl h-12 md:h-14 bg-surface-container-high rounded-xl px-3.5 shadow-md gap-3 focus-within:bg-surface-container-highest">
+            <form onSubmit={submitSearch} className="flex items-center w-full max-w-lg h-12 md:h-14 bg-surface-container-lowest/70 backdrop-blur-md border border-white/10 rounded-2xl pl-4 pr-1.5 gap-3 focus-within:border-primary/60 transition-colors">
               <Icon name="search" size={22} className="text-primary" />
               <input
                 value={search}
@@ -104,44 +108,79 @@ export default function Home() {
                 className="w-full bg-transparent outline-none text-body-sm md:text-body-md placeholder:text-outline"
                 placeholder="Ҷустуҷӯи асар ё шоир..."
               />
-              <button className="hidden md:block h-10 px-5 rounded-lg bg-primary text-on-primary text-label-md font-bold">Ёфтан</button>
+              <button className="hidden md:flex items-center gap-1.5 h-10 md:h-11 px-5 rounded-xl bg-primary text-on-primary text-label-md font-bold hover:brightness-110">
+                Ёфтан <Icon name="arrow_forward" size={18} />
+              </button>
             </form>
 
-            {/* featured book: a card on phones, part of the hero on wide screens */}
+            {/* the current book of the banner, in a glass card */}
             {featured && (
-              <div key={featured.id} className="animate-fade-up rounded-2xl overflow-hidden bg-surface-container-low md:bg-transparent shadow-xl md:shadow-none mt-2">
+              <div className="relative max-w-lg rounded-2xl overflow-hidden bg-surface-container-lowest/60 backdrop-blur-md border border-white/10 shadow-xl">
+                {/* phones: the cover on top (wide screens see it in the fan) */}
                 <div className="relative aspect-[16/9] md:hidden overflow-hidden">
                   <Cover book={featured} showTitle={false} frame={false} className="w-full h-full" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent" />
                 </div>
-                <div className="p-4 md:p-0 flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/90 text-on-primary text-label-sm font-bold">
-                      <Icon name="auto_stories" filled size={15} /> Китоби {heroIndex + 1} аз {heroBooks.length}
+
+                <div key={featured.id} className="animate-fade-up p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between text-label-sm">
+                    <span className="flex items-center gap-1.5 text-primary uppercase tracking-wider">
+                      <Icon name="auto_stories" filled size={15} /> Китоб
                     </span>
-                    {featured.narrator && (
-                      <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-label-sm">
-                        <Icon name="record_voice_over" size={15} className="text-secondary" /> {featured.narrator.name}
+                    <span className="text-on-surface-variant">
+                      {heroIndex + 1} / {heroBooks.length}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h2 className="font-serif text-headline-md md:text-[30px] md:leading-[38px] font-semibold">{featured.title}</h2>
+                    <p className="text-label-lg text-primary mt-0.5">{featured.author.name}</p>
+                  </div>
+
+                  {/* details */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-label-md text-on-surface-variant">
+                    {featured.category && (
+                      <span className="flex items-center gap-1">
+                        <Icon name="category" size={16} className="text-secondary" /> {featured.category.name}
+                      </span>
+                    )}
+                    {featured.total_duration > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Icon name="schedule" size={16} className="text-secondary" /> {formatDuration(featured.total_duration)}
+                      </span>
+                    )}
+                    {featured.reviews_count > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Icon name="star" filled size={16} className="text-primary" /> {featured.average_rating.toFixed(1)}
                       </span>
                     )}
                   </div>
-                  <div>
-                    <h2 className="font-serif text-headline-md md:text-[32px] md:leading-[40px] font-semibold">{featured.title}</h2>
-                    <p className="text-label-md md:text-label-lg text-primary">{featured.author.name}</p>
-                    <p className="text-body-sm md:text-body-md text-on-surface-variant line-clamp-2 mt-1 max-w-xl">{featured.description}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
+
+                  <p className="text-body-sm text-on-surface-variant line-clamp-2">{featured.description}</p>
+
+                  <div className="flex items-center gap-3 pt-1">
                     <button
                       onClick={() => player.playById(featured.id)}
-                      className="flex-1 md:flex-none md:px-8 h-12 bg-primary text-on-primary rounded-xl text-label-lg font-bold flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,192,65,0.35)] hover:brightness-110 active:scale-95"
+                      className="flex-1 h-11 bg-primary text-on-primary rounded-xl text-label-lg font-bold flex items-center justify-center gap-2 shadow-[0_6px_20px_-6px_rgba(255,192,65,0.6)] hover:brightness-110 active:scale-95"
                     >
                       <Icon name="play_circle" filled size={22} /> Гӯш кардан
                     </button>
-                    <Link to={`/books/${featured.id}`} className="h-12 px-5 rounded-xl bg-surface-container-high hover:bg-surface-bright flex items-center justify-center gap-2 text-label-lg">
-                      <Icon name="format_list_bulleted" size={22} />
-                      <span className="hidden sm:inline">Мундариҷа</span>
+                    <Link
+                      to={`/books/${featured.id}`}
+                      className="flex-1 h-11 rounded-xl border border-white/15 hover:border-primary/60 hover:text-primary flex items-center justify-center gap-2 text-label-lg"
+                    >
+                      <Icon name="auto_stories" size={20} /> Хондан
                     </Link>
                   </div>
+                </div>
+
+                {/* fills up until the banner turns to the next book (waits while paused) */}
+                <div className="h-0.5 bg-white/5">
+                  <div
+                    key={heroIndex}
+                    className="h-full bg-primary hero-progress"
+                    style={{ animationDuration: `${HERO_SECONDS}s`, animationPlayState: heroPaused ? "paused" : "running" }}
+                  />
                 </div>
               </div>
             )}

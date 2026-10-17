@@ -103,3 +103,15 @@ body {
 .group:hover .cover-shine {
   transform: translateX(130%);
 }
+
+/* Home banner: the thin line under the current book fills up until the next book comes */
+@keyframes hero-progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.hero-progress {
+  animation-name: hero-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
