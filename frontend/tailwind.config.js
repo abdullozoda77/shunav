@@ -33,7 +33,7 @@ export default {
       },
       // Both fonts have the full Cyrillic alphabet with the Tajik letters (ӣ ӯ ҷ ҳ қ ғ)
       fontFamily: {
-        serif: ["Lora", "Georgia", "serif"],
+        serif: ["Philosopher", "Georgia", "serif"],
         sans: ["Manrope", "system-ui", "sans-serif"],
       },
       fontSize: {
