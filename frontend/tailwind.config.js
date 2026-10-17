@@ -31,9 +31,10 @@ export default {
         "outline-variant": "#504534",
         error: "#ffb4ab",
       },
+      // Both fonts have the full Cyrillic alphabet with the Tajik letters (ӣ ӯ ҷ ҳ қ ғ)
       fontFamily: {
-        serif: ["Noto Serif", "serif"],
-        sans: ["Plus Jakarta Sans", "sans-serif"],
+        serif: ["Lora", "Georgia", "serif"],
+        sans: ["Manrope", "system-ui", "sans-serif"],
       },
       fontSize: {
         "label-sm": ["11px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
