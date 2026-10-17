@@ -7,23 +7,31 @@ const PALETTES = [
   ["#2d2414", "#ffdea8"],
 ];
 
-// Thin gold border; glows when the mouse is over the cover (or over a card around it with class "group")
+// Thin gold border. When the mouse is over the cover (or over a card around it with class "group") the cover
+// lifts a little, the border and a soft glow turn gold, and a light shine sweeps across (.cover-shine in index.css).
+// (classes are written out in full: Tailwind only finds class names that appear whole in the code)
 const FRAME =
-  "border border-primary/30 shadow-lg transition-all duration-300 " +
-  "hover:border-primary hover:shadow-[0_0_28px_rgba(255,192,65,0.45)] hover:-translate-y-1 " +
-  "group-hover:border-primary group-hover:shadow-[0_0_28px_rgba(255,192,65,0.45)] group-hover:-translate-y-1 group-hover:brightness-110";
+  "cover border border-primary/25 shadow-lg transition-[transform,box-shadow,border-color] duration-500 ease-out " +
+  "hover:-translate-y-1 hover:border-primary/80 hover:shadow-[0_16px_36px_-12px_rgba(255,192,65,0.5)] " +
+  "group-hover:-translate-y-1 group-hover:border-primary/80 group-hover:shadow-[0_16px_36px_-12px_rgba(255,192,65,0.5)]";
 
 // frame={false} for decorative use (e.g. the blurred background of the player)
 export default function Cover({ book, className = "", showTitle = true, frame = true }) {
   const frameClass = frame ? FRAME : "";
 
+  // keep `absolute` from the caller, otherwise `relative` (for what is drawn inside)
+  const position = className.includes("absolute") ? "" : "relative";
+
   if (book?.cover) {
-    return <img src={book.cover} alt={book.title} loading="lazy" className={`object-cover ${frameClass} ${className}`} />;
+    return (
+      <div className={`${position} overflow-hidden ${frameClass} ${className}`}>
+        <img src={book.cover} alt={book.title} loading="lazy" className="w-full h-full object-cover" />
+        {frame && <span className="cover-shine" />}
+      </div>
+    );
   }
 
   const [background, accent] = PALETTES[(book?.id || 0) % PALETTES.length];
-  // keep `absolute` from the caller, otherwise `relative` (for the pattern inside)
-  const position = className.includes("absolute") ? "" : "relative";
   return (
     <div
       className={`${position} overflow-hidden flex flex-col justify-end p-2 ${frameClass} ${className}`}

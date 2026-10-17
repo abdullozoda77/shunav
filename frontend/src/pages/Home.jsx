@@ -43,11 +43,12 @@ export default function Home() {
   // the banner shows one book at a time and moves on by itself (it waits while the mouse is over it)
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
+  // a new timer after every change, so clicking an arrow is not followed by a quick jump
   useEffect(() => {
     if (heroPaused || !heroBooks?.length) return;
-    const timer = setInterval(() => setHeroIndex((index) => (index + 1) % heroBooks.length), HERO_SECONDS * 1000);
-    return () => clearInterval(timer);
-  }, [heroPaused, heroBooks]);
+    const timer = setTimeout(() => setHeroIndex((index) => (index + 1) % heroBooks.length), HERO_SECONDS * 1000);
+    return () => clearTimeout(timer);
+  }, [heroPaused, heroBooks, heroIndex]);
 
   const featured = heroBooks?.[heroIndex];
   const verse = VERSES[new Date().getDate() % VERSES.length]; // a new verse every day

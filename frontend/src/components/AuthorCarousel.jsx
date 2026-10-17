@@ -1,23 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { fanDistance, fanStyle } from "./fan.js";
 import Icon from "./Icon.jsx";
 
 const SECONDS = 5;
-
-// Same idea as the book fan on top: the current author in the middle, the previous and next ones beside.
-const PLACES = {
-  "-2": { x: -90, rotate: -14, scale: 0.7, opacity: 0, z: 0 },
-  "-1": { x: -78, rotate: -8, scale: 0.82, opacity: 0.75, z: 10 },
-  0: { x: 0, rotate: 0, scale: 1, opacity: 1, z: 20 },
-  1: { x: 78, rotate: 8, scale: 0.82, opacity: 0.75, z: 10 },
-  2: { x: 90, rotate: 14, scale: 0.7, opacity: 0, z: 0 },
-};
-
-function distance(index, current, count) {
-  let d = (index - current + count) % count;
-  if (d > count / 2) d -= count;
-  return Math.max(-2, Math.min(2, d));
-}
 
 // Authors with their portraits, oldest first, turning by themselves (they wait while the mouse is over them).
 export default function AuthorCarousel({ authors }) {
@@ -26,11 +12,12 @@ export default function AuthorCarousel({ authors }) {
   const count = authors.length;
   const go = (index) => setCurrent((index + count) % count);
 
+  // next author after SECONDS; starts again after every change, so a click is not followed by a quick jump
   useEffect(() => {
     if (paused || count < 2) return;
-    const timer = setInterval(() => setCurrent((index) => (index + 1) % count), SECONDS * 1000);
-    return () => clearInterval(timer);
-  }, [paused, count]);
+    const timer = setTimeout(() => setCurrent((index) => (index + 1) % count), SECONDS * 1000);
+    return () => clearTimeout(timer);
+  }, [paused, count, current]);
 
   const author = authors[current];
 
@@ -51,23 +38,11 @@ export default function AuthorCarousel({ authors }) {
       </div>
 
       {/* portraits */}
-      <div className="relative h-56 flex items-center justify-center">
+      <div className="relative h-56 flex items-center justify-center" style={{ perspective: 900 }}>
         <div className="absolute w-40 h-40 rounded-full bg-primary/15 blur-2xl" />
         {authors.map((item, index) => {
-          const place = PLACES[distance(index, current, count)];
           return (
-            <button
-              key={item.id}
-              onClick={() => go(index)}
-              aria-label={item.name}
-              className="absolute transition-all duration-700 ease-out"
-              style={{
-                transform: `translateX(${place.x}px) rotate(${place.rotate}deg) scale(${place.scale})`,
-                opacity: place.opacity,
-                zIndex: place.z,
-                pointerEvents: place.opacity ? "auto" : "none",
-              }}
-            >
+            <button key={item.id} onClick={() => go(index)} aria-label={item.name} className="absolute" style={fanStyle(fanDistance(index, current, count), 92)}>
               {/* arch-shaped frame, like a window in old Persian buildings */}
               <img
                 src={item.photo}

@@ -37,14 +37,69 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Background of books (BooksBackground.jsx): each book turns its right page over and back */
-@keyframes page-turn {
-  0%, 30% { transform: scaleX(1); }
-  50% { transform: scaleX(-1); }
-  80%, 100% { transform: scaleX(1); }
+/* Background of books (BooksBackground.jsx): small open books; one page in each turns over in 3D */
+.mini-book {
+  position: absolute;
+  width: 46px;
+  height: 30px;
+  perspective: 160px;
 }
 
-.page-turn {
-  transform-origin: 24px 0; /* the spine of the book */
-  animation: page-turn 6s ease-in-out infinite;
+.mini-book-gold { --book-color: #ffc041; }
+.mini-book-teal { --book-color: #4fdbc8; }
+
+/* a page: thin outline with three "lines of text" */
+.mini-page {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  border: 1.4px solid var(--book-color);
+  background:
+    linear-gradient(var(--book-color), var(--book-color)) 5px 8px / 60% 1px no-repeat,
+    linear-gradient(var(--book-color), var(--book-color)) 5px 13px / 60% 1px no-repeat,
+    linear-gradient(var(--book-color), var(--book-color)) 5px 18px / 45% 1px no-repeat,
+    #0f131d;
+}
+
+.mini-page-left {
+  left: 0;
+  border-radius: 6px 1px 1px 4px;
+  transform: skewY(4deg);
+}
+
+.mini-page-right {
+  right: 0;
+  border-radius: 1px 6px 4px 1px;
+  transform: skewY(-4deg);
+}
+
+/* the turning page rotates around the spine (its left edge) from right to left, then waits and starts again */
+.turning-page {
+  transform-origin: left center;
+  animation: page-turn 7s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  backface-visibility: visible;
+}
+
+@keyframes page-turn {
+  0%, 18% { transform: skewY(-4deg) rotateY(0deg); opacity: 1; }
+  48% { transform: skewY(0deg) rotateY(-180deg); opacity: 1; }
+  60% { transform: skewY(0deg) rotateY(-180deg); opacity: 0; }
+  61%, 75% { transform: skewY(-4deg) rotateY(0deg); opacity: 0; }
+  90%, 100% { transform: skewY(-4deg) rotateY(0deg); opacity: 1; }
+}
+
+/* Cover.jsx: a band of light that sweeps across a cover when the mouse comes over it */
+.cover-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 233, 180, 0.32) 50%, transparent 65%);
+  transform: translateX(-130%);
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cover:hover .cover-shine,
+.group:hover .cover-shine {
+  transform: translateX(130%);
 }
