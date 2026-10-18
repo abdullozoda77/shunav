@@ -37,6 +37,9 @@ MORE_BOOKS = [
     dict(title='Марги судхӯр', author='ayni', category='Наср',
          description='Қиссаи машҳури Садриддин Айнӣ (1937) дар бораи судхӯри хасис Қорӣ Ишкамба ва зиндагии '
                      'Бухорои пеш аз инқилоб.' + RESTORED_NOTE),
+    dict(title='Мактаби кӯҳна', author='ayni', category='Наср',
+         description='Қиссаи Садриддин Айнӣ (1934) дар бораи мактаби деҳаи кӯдакиаш: мактабдори бераҳм, фаллоқ, '
+                     'бачагони шӯх ва падари доно, ки писарашро бо ҳисоби абҷад ва рақамҳо шинос мекунад.'),
     dict(title='Одина', author='ayni', category='Наср',
          description='Қиссаи Садриддин Айнӣ (1924) — саргузашти ҷавони камбағал Одина ва ишқи ӯ ба Гулбибӣ, '
                      'тасвири зиндагии деҳқонони тоҷик дар замони амирӣ.'),
@@ -511,6 +514,21 @@ def read_bedil_gazal():
     return chapters
 
 
+def read_typed(folder):
+    """A book typed page by page from scans (data/texts/<folder>/NNN.txt, notes in _notes.txt).
+    '◆ ' lines start the sections; every section is one chapter."""
+    import glob
+    text = '\n\n'.join(open(f, encoding='utf-8').read().strip()
+                       for f in sorted(glob.glob(f'data/texts/{folder}/[0-9]*.txt')))
+    # a page that ends in the middle of a word with '-' goes on in the next page
+    text = re.sub(r'-\n\n(?=[а-яёӣӯҳқғҷ])', '', text)
+    # a page that ends in the middle of a sentence goes on in the first paragraph of the next page
+    text = re.sub(r'^(?!◆)(.*[^.!?:…»\n])\n\n(?=[а-яёӣӯҳқғҷ])', r'\1 ', text, flags=re.M)
+    parts = re.split(r'^◆ (.+)$', text, flags=re.M)
+    sections = [(parts[i], parts[i + 1].strip()) for i in range(1, len(parts), 2)]
+    return [(heading, f'◆ {heading}\n\n{body}') for heading, body in sections]
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
@@ -519,6 +537,7 @@ READERS = {
     'rudaki': ('Ашъор', read_rudaki),
     'shohnoma': ('Шоҳнома. Ҷилди 1', read_shohnoma),
     'odina': ('Одина', lambda: read_prose('odina', 3)),
+    'maktabi_kuhna': ('Мактаби кӯҳна', lambda: read_typed('maktabi_kuhna')),
     'bedil_gazal': ('Саду як ғазал', read_bedil_gazal),
     'yoddoshtho4': ('Ёддоштҳо', lambda: read_prose('yoddoshtho4', 3, 'Қисми якум')),
     **{f'masnavi{n}': (f'Маснавии маънавӣ. Дафтари {word}', lambda n=n: read_masnavi(f'masnavi{n}'))
