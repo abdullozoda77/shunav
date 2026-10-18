@@ -90,6 +90,23 @@ routers/
 .venv/bin/python portraits.py
 ```
 
+## Овоз
+
+**Овози содда (дар ҳамин компютер):** `generate_audio.py` — модели `facebook/mms-tts-tgk`, бе GPU кор мекунад,
+вале овозаш мошинӣ аст.
+
+**Овози табиӣ (дар Google Colab):** модели Chatterbox Tajik (`Tohirju/chatterbox-mtl-tajik`) овози як
+шахсро аз сабти 10–20 сония меомӯзад ва бо он мехонад. Ба GPU ниёз дорад, барои ҳамин дар Colab-и ройгон кор мекунад:
+
+1. `.venv\Scripts\python export_for_tts.py` → `data/tts/chapters.json`
+2. Дар Google Drive папкаи `shunav_tts`: `chapters.json` ва `voice.wav` (овози шахсе, ки розӣ аст).
+3. `tts_colab.ipynb`-ро дар Colab кушоед (GPU T4) ва ҳамаашро иҷро кунед. Бобҳои тайёр дар `shunav_tts/audio/` нигоҳ
+   дошта мешаванд; агар Colab қатъ шавад, аз нав иҷро кунед — бобҳои тайёр гузаронида мешаванд.
+4. Папкаи `audio`-ро зеркашӣ кунед: `.venv\Scripts\python import_audio.py <папка>`
+
+Ҳеҷ модели AI бехато намехонад (ин модел тақрибан 1 калима аз 10-ро нодуруст мехонад), ва матни кириллӣ
+худкор гардонида шудааст — барои хониши бехато ровии зинда ва матни санҷидашуда лозим аст.
+
 ## Оғоз дар Windows (PowerShell)
 
 Лозим: **Python 3.12+**, **Node.js 20+**, **Git**.
