@@ -5,7 +5,7 @@ import Cover from "./Cover.jsx";
 import Icon from "./Icon.jsx";
 import { useT } from "../i18n.jsx";
 
-// The player bar. Phones: a small card above the bottom menu. Wide screens: a full bar at the bottom.
+// The player bar. Phones: a small card above the bottom menu. Wide screens: a full bar at the bottom. ✕ stops and hides it.
 export default function MiniPlayer() {
   const player = usePlayer();
   const t = useT();
@@ -73,6 +73,14 @@ export default function MiniPlayer() {
             <Link to="/player" className="h-9 px-3 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center gap-1.5 text-label-md">
               <Icon name="open_in_full" size={16} /> {t("Плеер")}
             </Link>
+            <button
+              onClick={player.close}
+              className="w-9 h-9 rounded-full bg-surface-container-high hover:bg-error/15 hover:text-error flex items-center justify-center text-on-surface-variant"
+              aria-label={t("Пӯшидани плеер")}
+              title={t("Пӯшидани плеер")}
+            >
+              <Icon name="close" size={18} />
+            </button>
           </div>
 
           {/* phones: two buttons */}
@@ -81,6 +89,9 @@ export default function MiniPlayer() {
           </button>
           <button onClick={player.toggle} className="md:hidden w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-[0_0_12px_rgba(224,165,38,0.4)]" aria-label={t("Пахш ё таваққуф")}>
             <Icon name={player.playing ? "pause" : "play_arrow"} filled size={24} />
+          </button>
+          <button onClick={player.close} className="md:hidden w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:text-error" aria-label={t("Пӯшидани плеер")}>
+            <Icon name="close" size={20} />
           </button>
         </div>
       </div>

@@ -145,9 +145,23 @@ export function PlayerProvider({ children }) {
     }
   }
 
+  // Stop and hide the player bar (the place is saved, "Continue" starts from it later)
+  function close() {
+    saveProgress();
+    clearTimeout(sleepTimer.current);
+    setSleepMinutes(0);
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+    setPlaying(false);
+    setPosition(0);
+    setChapter(null);
+    setBook(null);
+  }
+
   const value = {
     book, chapter, playing, position, duration, speed, sleepMinutes,
-    playChapter, playById, toggle, seek, skip, next, previous, setSpeed, setSleep,
+    playChapter, playById, toggle, seek, skip, next, previous, setSpeed, setSleep, close,
     hasNext: Boolean(chapterWithAudio(1)),
     hasPrevious: Boolean(chapterWithAudio(-1)),
   };
