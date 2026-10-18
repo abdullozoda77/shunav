@@ -7,7 +7,7 @@ from auth import get_admin_user
 from database import get_db
 from models import Author, User
 from schemas import AuthorCreate, AuthorRead
-from utils import get_or_404, tajik_sort_key, text_contains
+from utils import get_or_404, matches_search, tajik_sort_key
 
 router = APIRouter(prefix='/authors', tags=['Authors'])
 
@@ -50,7 +50,7 @@ def list_authors(
 
     # Search (in Python, so Cyrillic upper/lower case works)
     if search is not None:
-        authors = [author for author in authors if text_contains(author.name, search)]
+        authors = [author for author in authors if matches_search(search, author.name)]
 
     if sort_by == 'name':  # Tajik alphabet order
         authors.sort(key=lambda author: tajik_sort_key(author.name), reverse=(order == 'desc'))

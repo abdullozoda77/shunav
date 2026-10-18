@@ -38,14 +38,14 @@
    primary-fixed stays light: it is only used on the dark genre cards. */
 :root[data-theme="light"] {
   color-scheme: light;
-  --c-surface: 248 243 234;
-  --c-surface-bright: 221 211 193;
-  --c-surface-container-lowest: 255 255 255;
-  --c-surface-container-low: 242 235 223;
-  --c-surface-container: 236 228 214;
-  --c-surface-container-high: 229 220 203;
-  --c-surface-container-highest: 220 210 191;
-  --c-surface-variant: 220 210 191;
+  --c-surface: 236 229 216;
+  --c-surface-bright: 196 185 165;
+  --c-surface-container-lowest: 246 241 232;
+  --c-surface-container-low: 229 221 206;
+  --c-surface-container: 222 213 197;
+  --c-surface-container-high: 214 204 186;
+  --c-surface-container-highest: 204 193 173;
+  --c-surface-variant: 204 193 173;
   --c-primary: 156 107 0;
   --c-primary-container: 242 177 52;
   --c-primary-fixed-dim: 176 122 10;
@@ -60,7 +60,7 @@
   --c-on-surface: 31 27 20;
   --c-on-surface-variant: 91 79 61;
   --c-outline: 139 126 105;
-  --c-outline-variant: 207 194 171;
+  --c-outline-variant: 196 182 158;
   --c-error: 186 26 26;
   --c-line: 90 60 20;
 }

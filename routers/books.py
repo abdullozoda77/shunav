@@ -8,7 +8,7 @@ from config import IMAGE_TYPES
 from database import get_db
 from models import Author, Book, Category, Narrator, User
 from schemas import BookCreate, BookDetail, BookRead, BookUpdate, Language, LicenseType
-from utils import delete_file, get_or_404, get_visible_book, save_file, tajik_sort_key, text_contains
+from utils import delete_file, get_or_404, get_visible_book, matches_search, save_file, tajik_sort_key
 
 router = APIRouter(prefix='/books', tags=['Books'])
 
@@ -26,7 +26,7 @@ def check_links(db: Session, data):
 @router.get('', response_model=list[BookRead])
 def list_books(
     # Search
-    search: str | None = Query(None, min_length=1, description='Book title or author name'),
+    search: str | None = Query(None, min_length=1, description='Book title, author or genre, in Tajik, Russian or English'),
 
     # Filter
     author_id: int | None = Query(None, ge=1),
@@ -79,9 +79,12 @@ def list_books(
 
     books = query.all()
 
-    # Search (in Python, so Cyrillic upper/lower case works)
+    # Search (in Python: any case, any language, Tajik letters or not; see utils.matches_search)
     if search is not None:
-        books = [book for book in books if text_contains(book.title, search) or text_contains(book.author.name, search)]
+        books = [
+            book for book in books
+            if matches_search(search, book.title, book.author.name, book.category.name if book.category else None)
+        ]
 
     # Rating is counted in Python (see Book.average_rating), so it is filtered and sorted here
     if min_rating is not None:

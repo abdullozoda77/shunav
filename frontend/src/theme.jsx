@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 // First visit: the system setting decides. After a click the choice is remembered in this browser.
 const ThemeContext = createContext(null);
 
-const THEME_COLOR = { dark: "#0f131d", light: "#f8f3ea" };
+const THEME_COLOR = { dark: "#0f131d", light: "#ece5d8" };
 
 function startTheme() {
   try {
