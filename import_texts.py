@@ -172,6 +172,24 @@ def rhyme(line):
     return re.sub(r'[^а-яёӣӯҳқғҷ]', '', line.lower())[-2:]
 
 
+def group_quatrains(lines):
+    """Verse lines -> rubais of 4 lines, by their rhyme (AABA); a stray line between them is skipped."""
+    quatrains, p = [], 0
+    while p + 4 <= len(lines):
+        for skip in range(3):
+            window = lines[p + skip:p + skip + 4]
+            if len(window) == 4:
+                a, b, _, d = (rhyme(l) for l in window)
+                if a == b or b == d or a == d:
+                    quatrains.append(window)
+                    p += skip + 4
+                    break
+        else:
+            quatrains.append(lines[p:p + 4])
+            p += 4
+    return quatrains
+
+
 def read_ruboiyot():
     """Tajik quatrains with Russian translations between them and word notes at the foot of the page.
     The Tajik lines are put into fours by their rhyme (a rubai rhymes AABA), skipping a stray line if needed."""
@@ -197,18 +215,7 @@ def read_ruboiyot():
                     lines.extend(re.sub(r'(?<=[^\d\s])\d+', '', l) for l in block)  # note numbers: "Талқин1"
             block = []
 
-    quatrains, p = [], 0
-    while p + 4 <= len(lines):
-        for skip in range(3):
-            a, b, c, d = (rhyme(l) for l in lines[p + skip:p + skip + 4]) if p + skip + 4 <= len(lines) else ('1', '2', '3', '4')
-            if a == b or b == d or a == d:
-                quatrains.append(lines[p + skip:p + skip + 4])
-                p += skip + 4
-                break
-        else:
-            quatrains.append(lines[p:p + 4])
-            p += 4
-
+    quatrains = group_quatrains(lines)
     chapters = []
     for start in range(0, len(quatrains), 25):
         group = quatrains[start:start + 25]
@@ -217,11 +224,94 @@ def read_ruboiyot():
     return chapters
 
 
+def page_lines(book_pages, first, last):
+    """[(page, line)] from these pages, without the notes at the foot ("1. ...") and note numbers in words."""
+    out = []
+    for number in range(first, last + 1):
+        for line in book_pages.get(number, []):
+            if re.match(r'^\d+\.\s', line):
+                break
+            out.append((number, re.sub(r'(?<=[^\d\s.])\d+(?=[\s.,!?;:»…]|$)', '', line)))
+        out.append((number, ''))
+    return out
+
+
+def split_stars(lines):
+    """Poems divided by '* * *' -> [[lines]]."""
+    poems, current = [], []
+    for line in lines + ['* * *']:
+        if re.fullmatch(r'\*\s*\*\s*\*', line):
+            if any(current):
+                poems.append(current)
+            current = []
+        else:
+            current.append(line)
+    return poems
+
+
+def read_rudaki():
+    """Four parts. Qasidas and qit'as: a new poem where a line is the first line of one of the poems of the older
+    (Ganjoor) "Ашъор" — compared in a spelling-free way (utils.plain_latin), since the pages do not mark them.
+    Rubais: by rhyme. Scattered verses and masnavi pieces: divided by '* * *'."""
+    from difflib import SequenceMatcher
+
+    from utils import plain_latin
+
+    book_pages = pages('rudaki')
+    db = SessionLocal()
+    older = db.query(Book).filter(Book.title == 'Ашъор').first()
+    first_lines = []
+    if older:
+        for chapter in older.chapters:
+            for body in re.split(r'^◆ .*$', chapter.text, flags=re.M)[1:]:
+                line = next((l for l in body.split('\n') if l.strip()), '')
+                first_lines.append(plain_latin(line)[:40])
+
+    def starts_poem(line):
+        key = plain_latin(line)[:40]
+        return len(key) > 10 and any(SequenceMatcher(None, key, known).ratio() > 0.8 for known in first_lines)
+
+    def same_line(a, b):
+        return SequenceMatcher(None, plain_latin(a)[:40], plain_latin(b)[:40]).ratio() > 0.8
+
+    poems = []
+    for _, line in page_lines(book_pages, 50, 186):
+        if re.fullmatch(r'\*\s*\*\s*\*', line):
+            poems.append([])
+        # (a poem can end by repeating its own first line: that is not a new poem)
+        elif line and (not poems or (starts_poem(line) and not same_line(line, next((l for l in poems[-1] if l), '')))):
+            poems.append([line])
+        elif poems:
+            poems[-1].append(line)
+    poems = [p for p in poems if any(p)]
+
+    def chapters_of(items, label, heading, size):
+        out = []
+        starts = list(range(0, len(items), size))
+        if len(starts) > 1 and len(items) - starts[-1] < size // 4:  # a few left over: into the chapter before
+            starts.pop()
+        for k, start in enumerate(starts):
+            group = items[start:starts[k + 1] if k + 1 < len(starts) else len(items)]
+            text = '\n\n\n'.join(section(f'{heading} {start + n + 1}', item) for n, item in enumerate(group))
+            title = label if len(items) <= size else f'{label} {start + 1}–{start + len(group)}'
+            out.append((title, text))
+        return out
+
+    rubais = group_quatrains([l for _, l in page_lines(book_pages, 188, 222) if l and not l.startswith('*')])
+    scattered = split_stars([l for _, l in page_lines(book_pages, 224, 326)])
+    masnavi = split_stars([l for _, l in page_lines(book_pages, 328, 356)])
+    return (chapters_of(poems, 'Қасидаҳо ва қитъаҳо', 'Шеъри', 30)
+            + chapters_of(rubais, 'Рубоиёт', 'Рубоии', 50)
+            + chapters_of(scattered, 'Абёти пароканда', 'Порчаи', 60)
+            + chapters_of(masnavi, 'Порчаҳои маснавӣ ва достонҳо', 'Порчаи', 100))
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
     'masnavi': ('Маснавии маънавӣ. Дафтари аввал', read_masnavi),
     'ruboiyot': ('Рубоиёт', read_ruboiyot),
+    'rudaki': ('Ашъор', read_rudaki),
 }
 
 
