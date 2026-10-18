@@ -23,6 +23,8 @@ MORE_AUTHORS = {
     'bedil': dict(name='Мирзо Абдулқодири Бедил', birth_year=1644, death_year=1720,
                   bio='Шоир ва мутафаккири бузург, устоди «сабки ҳиндӣ», ки дар Мовароуннаҳр хеле дӯсташ медоштанд.'),
 }
+RESTORED_NOTE = (' Матн аз нусхаи сканшуда бо барнома барқарор карда шудааст ва ҳанӯз санҷида нашудааст — '
+                 'хатоҳо буда метавонанд.')
 MASNAVI = 'Дафтари {}-и «Маснавии маънавӣ»-и Мавлоно Ҷалолиддини Балхӣ — ҳикоятҳо ва ҳикматҳои ирфонӣ.'
 MORE_BOOKS = [
     dict(title='Шоҳнома. Ҷилди 1', author='ferdowsi', category='Достон',
@@ -30,6 +32,11 @@ MORE_BOOKS = [
                      'Манучеҳр, ишқи Золу Рӯдоба, зодани Рустам ва гирифтани Рахш.'),
     *[dict(title=f'Маснавии маънавӣ. Дафтари {n}', author='rumi', category='Достон', description=MASNAVI.format(word))
       for n, word in [('дуюм', 'дуюм'), ('сеюм', 'сеюм'), ('чаҳорум', 'чаҳорум'), ('панҷум', 'панҷум'), ('шашум', 'шашум')]],
+    dict(title='Саду як ғазал', author='bedil', category='Ғазал',
+         description='Саду як ғазали Мирзо Абдулқодири Бедил (нашри «Ирфон», 2008).' + RESTORED_NOTE),
+    dict(title='Марги судхӯр', author='ayni', category='Наср',
+         description='Қиссаи машҳури Садриддин Айнӣ (1937) дар бораи судхӯри хасис Қорӣ Ишкамба ва зиндагии '
+                     'Бухорои пеш аз инқилоб.' + RESTORED_NOTE),
     dict(title='Одина', author='ayni', category='Наср',
          description='Қиссаи Садриддин Айнӣ (1924) — саргузашти ҷавони камбағал Одина ва ишқи ӯ ба Гулбибӣ, '
                      'тасвири зиндагии деҳқонони тоҷик дар замони амирӣ.'),
@@ -41,9 +48,19 @@ NOTE = '\n\nМатн аз нашри тоҷикии китоб (kitobkhon.net) �
 WRAP = 64  # a prose line this long was cut by the page width; the next line goes on with it
 
 
+RESTORED = {'bedil_gazal', 'margi_sudkhur'}  # scans whose text lost the Tajik letters (see tajik_restore.py)
+_restorer = None
+
+
 def pages(name):
     """{page number: [lines]} without the site header and the page number."""
+    global _restorer
     text = open(f'{RAW}/{name}.txt', encoding='utf-8').read()
+    if name in RESTORED:
+        if _restorer is None:
+            from tajik_restore import Restorer
+            _restorer = Restorer()
+        text = _restorer.text(text)
     parts = re.split(r'=== page (\d+) ===\n', text)[1:]
     out = {}
     for number, body in zip(parts[0::2], parts[1::2]):
@@ -476,6 +493,24 @@ def read_prose(name, first_page, first_part=None):
              '\n\n\n'.join(f'◆ {h}\n\n{t}' for h, t in group)) for part_title, group in chapters]
 
 
+def read_bedil_gazal():
+    """One ghazal on each page (5–104); the book's name and an ornament at the foot of every page are left out."""
+    book_pages = pages('bedil_gazal')
+    ghazals = []
+    for number in range(5, 105):
+        lines = [l for l in book_pages.get(number, [])
+                 if len(re.findall(r'[А-Яа-яЁёӢӣӮӯҲҳҚқҒғҶҷ]', l)) >= 6 and not re.fullmatch(r'(\S ){4,}\S?', l)
+                 and 'www' not in l]
+        if lines:
+            ghazals.append(lines)
+    chapters = []
+    for start in range(0, len(ghazals), 25):
+        group = ghazals[start:start + 25]
+        text = '\n\n\n'.join(section(f'Ғазали {start + n + 1}', g) for n, g in enumerate(group))
+        chapters.append((f'Ғазалҳои {start + 1}–{start + len(group)}', text))
+    return chapters
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
@@ -484,6 +519,7 @@ READERS = {
     'rudaki': ('Ашъор', read_rudaki),
     'shohnoma': ('Шоҳнома. Ҷилди 1', read_shohnoma),
     'odina': ('Одина', lambda: read_prose('odina', 3)),
+    'bedil_gazal': ('Саду як ғазал', read_bedil_gazal),
     'yoddoshtho4': ('Ёддоштҳо', lambda: read_prose('yoddoshtho4', 3, 'Қисми якум')),
     **{f'masnavi{n}': (f'Маснавии маънавӣ. Дафтари {word}', lambda n=n: read_masnavi(f'masnavi{n}'))
        for n, word in [(2, 'дуюм'), (3, 'сеюм'), (4, 'чаҳорум'), (5, 'панҷум'), (6, 'шашум')]},
