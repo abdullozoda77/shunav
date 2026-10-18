@@ -155,10 +155,73 @@ def read_masnavi():
     return chapters
 
 
+RUSSIAN_WORDS = {'что', 'все', 'всё', 'как', 'мне', 'ты', 'его', 'это', 'так', 'меня', 'тебя', 'без', 'кто', 'где',
+                 'когда', 'если', 'бы', 'же', 'ли', 'уже', 'мой', 'твой', 'нас', 'нам', 'очевидно', 'был', 'была'}
+
+
+def russian(line):
+    """A line of the Russian translations printed next to the poems (only Russian has ы ь щ and these words)."""
+    if re.search('[ыьщЫЬЩ]', line):
+        return True
+    if re.search('[ӣӯҳқғҷӢӮҲҚҒҶ]', line):
+        return False
+    return bool(set(re.findall(r'[а-яё]+', line.lower())) & RUSSIAN_WORDS)
+
+
+def rhyme(line):
+    return re.sub(r'[^а-яёӣӯҳқғҷ]', '', line.lower())[-2:]
+
+
+def read_ruboiyot():
+    """Tajik quatrains with Russian translations between them and word notes at the foot of the page.
+    The Tajik lines are put into fours by their rhyme (a rubai rhymes AABA), skipping a stray line if needed."""
+    book_pages = pages('ruboiyot')
+    lines = []
+    for number in sorted(book_pages):
+        if number < 3 or number >= 231:  # the title pages and the back page
+            continue
+        page = book_pages[number]
+        for k, line in enumerate(page):  # notes: from "1 Word – meaning" to the end of the page
+            if re.match(r'^\d+\s*\S.*[–-]', line):
+                page = page[:k]
+                break
+        block = []
+        for line in page + ['']:
+            line = re.sub(r'^\*\s*\*\s*\*\s*', '', line)
+            if line:
+                block.append(line)
+                continue
+            if block and not any(re.search('[ыьщЫЬЩ]', l) for l in block):
+                block = [l for l in block if not russian(l)]
+                if block and not block[0][0].islower() and all(len(l) <= 55 for l in block):  # not a note going on
+                    lines.extend(re.sub(r'(?<=[^\d\s])\d+', '', l) for l in block)  # note numbers: "Талқин1"
+            block = []
+
+    quatrains, p = [], 0
+    while p + 4 <= len(lines):
+        for skip in range(3):
+            a, b, c, d = (rhyme(l) for l in lines[p + skip:p + skip + 4]) if p + skip + 4 <= len(lines) else ('1', '2', '3', '4')
+            if a == b or b == d or a == d:
+                quatrains.append(lines[p + skip:p + skip + 4])
+                p += skip + 4
+                break
+        else:
+            quatrains.append(lines[p:p + 4])
+            p += 4
+
+    chapters = []
+    for start in range(0, len(quatrains), 25):
+        group = quatrains[start:start + 25]
+        text = '\n\n\n'.join(f'◆ Рубоии {start + n + 1}\n\n' + '\n'.join(q) for n, q in enumerate(group))
+        chapters.append((f'Рубоиҳои {start + 1}–{start + len(group)}', text))
+    return chapters
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
     'masnavi': ('Маснавии маънавӣ. Дафтари аввал', read_masnavi),
+    'ruboiyot': ('Рубоиёт', read_ruboiyot),
 }
 
 
