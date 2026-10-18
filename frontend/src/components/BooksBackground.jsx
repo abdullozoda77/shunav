@@ -18,7 +18,7 @@ const BOOKS = Array.from({ length: COLUMNS * ROWS }, (_, index) => {
 
 export default function BooksBackground({ className = "", style }) {
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`} style={style}>
+    <div className={`books-background absolute inset-0 pointer-events-none overflow-hidden ${className}`} style={style}>
       {BOOKS.map((book, index) => (
         <div key={index} className={`mini-book mini-book-${book.color}`} style={{ left: book.left, top: book.top }}>
           <div className="mini-page mini-page-left" />

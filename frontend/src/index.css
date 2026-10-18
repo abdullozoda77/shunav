@@ -108,8 +108,11 @@ body {
   perspective: 160px;
 }
 
-.mini-book-gold { --book-color: #ffc041; }
-.mini-book-teal { --book-color: #4fdbc8; }
+.mini-book-gold { --book-color: rgb(var(--c-primary)); }
+.mini-book-teal { --book-color: rgb(var(--c-secondary)); }
+
+/* on the light paper the faint books need more ink to be seen */
+:root[data-theme="light"] .books-background { opacity: 0.32 !important; }
 
 /* a page: thin outline with three "lines of text" */
 .mini-page {
