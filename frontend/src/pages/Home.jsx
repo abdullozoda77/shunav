@@ -206,7 +206,7 @@ export default function Home() {
       {/* Continue listening */}
       {continueList?.length > 0 && (
         <section className="flex flex-col gap-3 md:gap-5">
-          <SectionTitle dot title={t("Идома додан")} link="/library" linkText={t("Китобхона")} />
+          <SectionTitle dot title={t("Идома додан")} link="/library" linkText={t("Китобхонаи ман")} />
           <div className={`${ROW} md:grid-cols-2 lg:grid-cols-3`}>
             {continueList.slice(0, 6).map(({ book, chapter, position_seconds }, index) => (
               <div key={book.id} className="group w-[82vw] max-w-[320px] md:w-auto md:max-w-none shrink-0 snap-center bg-surface-container-high rounded-xl p-3.5 md:p-5 shadow-lg hover:bg-surface-container-highest transition-colors">

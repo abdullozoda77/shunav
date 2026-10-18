@@ -36,7 +36,7 @@ export default function SettingsMenu() {
 
   const links = [
     { to: "/profile", icon: "person", label: t("Профил") },
-    { to: "/library", icon: "local_library", label: t("Китобхона") },
+    { to: "/library", icon: "collections_bookmark", label: t("Китобхонаи ман") },
   ];
 
   return (

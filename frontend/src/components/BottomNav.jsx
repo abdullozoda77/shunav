@@ -5,8 +5,8 @@ import { useT } from "../i18n.jsx";
 // The same links are shown in the top menu on wide screens (Header.jsx). Labels are translated where shown.. Labels are translated where shown.
 export const NAV_LINKS = [
   { to: "/", icon: "menu_book", label: "Асосӣ" },
-  { to: "/search", icon: "search", label: "Ҷустуҷӯ" },
-  { to: "/library", icon: "local_library", label: "Китобхона" },
+  { to: "/search", icon: "local_library", label: "Китобхона" }, // all books (with search and filters)
+  { to: "/library", icon: "collections_bookmark", label: "Китобхонаи ман" }, // the user's own: continue, favourites, bookmarks
   { to: "/profile", icon: "person", label: "Профил" },
 ];
 

@@ -49,7 +49,7 @@ export default function Search() {
 
   return (
     <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-4 md:gap-6">
-      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">{t("Ҷустуҷӯ")}</h1>
+      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">{t("Китобхона")}</h1>
 
       <form
         onSubmit={(event) => {

@@ -166,7 +166,7 @@ export default function Profile() {
         {/* left: what is being listened to, favourite books */}
         <div className="flex flex-col gap-6 md:gap-8 min-w-0">
           <section className="flex flex-col gap-3 md:gap-4">
-            <SectionTitle icon="play_circle" title={t("Идома додан")} link="/library" linkText={t("Китобхона")} />
+            <SectionTitle icon="play_circle" title={t("Идома додан")} link="/library" linkText={t("Китобхонаи ман")} />
             {continueList?.length ? (
               <div className="flex flex-col gap-2.5">
                 {continueList.slice(0, 3).map((item) => (
