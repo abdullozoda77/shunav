@@ -14,10 +14,14 @@ import { formatDuration, percent } from "../format.js";
 import { useApi } from "../hooks.js";
 import { usePlayer } from "../player.jsx";
 
+// `author` is the full name as in the database, so the verse can show the author's 3D portrait
 const VERSES = [
   { text: "Бани одам аъзои якдигаранд, ки дар офариниш зи як гавҳаранд.", author: "Саъдии Шерозӣ" },
-  { text: "Бӯи Ҷӯи Мӯлиён ояд ҳаме, ёди ёри меҳрубон ояд ҳаме.", author: "Рӯдакӣ" },
-  { text: "Тавоно бувад ҳар ки доно бувад, зи дониш дили пир барно бувад.", author: "Фирдавсӣ" },
+  { text: "Бӯи Ҷӯи Мӯлиён ояд ҳаме, ёди ёри меҳрубон ояд ҳаме.", author: "Абӯабдуллоҳи Рӯдакӣ" },
+  { text: "Тавоно бувад ҳар ки доно бувад, зи дониш дили пир барно бувад.", author: "Абулқосим Фирдавсӣ" },
+  { text: "Ин қофилаи умр аҷаб мегузарад, дарёб даме, ки бо тараб мегузарад.", author: "Умари Хайём" },
+  { text: "Агар он турки шерозӣ ба даст орад дили моро, ба холи ҳиндуяш бахшам Самарқанду Бухороро.", author: "Ҳофизи Шерозӣ" },
+  { text: "Бишнав аз най чун ҳикоят мекунад, аз ҷудоиҳо шикоят мекунад.", author: "Ҷалолиддини Балхӣ (Румӣ)" },
 ];
 
 const HERO_SECONDS = 6;
@@ -53,6 +57,7 @@ export default function Home() {
 
   const featured = heroBooks?.[heroIndex];
   const verse = VERSES[new Date().getDate() % VERSES.length]; // a new verse every day
+  const verseAuthor = allAuthors?.find((author) => author.name === verse.author);
 
   function submitSearch(event) {
     event.preventDefault();
@@ -332,13 +337,29 @@ export default function Home() {
 
         <aside className="flex flex-col gap-4 lg:pt-14">
           <section className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-surface-container-high to-surface-container flex flex-col gap-3 shadow-md relative overflow-hidden">
-            <Icon name="format_quote" size={96} className="absolute -right-3 -bottom-4 text-surface-container-highest/60" />
             <div className="flex items-center gap-2 text-primary">
               <Icon name="format_quote" size={18} />
               <span className="text-label-sm uppercase tracking-wider font-bold">Байти рӯз</span>
             </div>
             <p className="relative font-serif text-verse md:text-[20px] md:leading-[36px] italic">«{verse.text}»</p>
-            <span className="relative text-label-sm text-secondary">— {verse.author}</span>
+            {/* the author: small 3D portrait in an arch, like in the authors section */}
+            <div className="flex items-center gap-3 mt-1">
+              {verseAuthor?.photo && (
+                <img
+                  src={verseAuthor.photo}
+                  alt={verse.author}
+                  className="w-11 h-14 object-cover rounded-t-full rounded-b-lg border border-primary/50 shadow-md"
+                />
+              )}
+              <div className="min-w-0">
+                <p className="text-label-md text-secondary truncate">{verse.author}</p>
+                {verseAuthor?.birth_year && (
+                  <p className="text-label-sm text-on-surface-variant">
+                    {verseAuthor.birth_year}–{verseAuthor.death_year}
+                  </p>
+                )}
+              </div>
+            </div>
           </section>
 
           {authors?.length > 0 && <AuthorCarousel authors={authors} />}
