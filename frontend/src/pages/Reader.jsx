@@ -15,19 +15,25 @@ const THEMES = {
   dark: {
     name: "Мисли сайт",
     page: "bg-surface md:bg-surface-container-low text-on-surface", // on wide screens the page is a bit lighter than the background
-    soft: "bg-surface-container hover:bg-surface-container-high text-on-surface",
+    soft: "bg-surface-container-high hover:bg-surface-container-highest text-on-surface",
+    edge: "border-line/15",
+    chip: "bg-surface-container-highest text-primary",
     swatch: "bg-surface-container-highest text-on-surface",
   },
   sepia: {
     name: "Сепия",
     page: "bg-[#f4ecd8] text-[#3b2f1e]",
     soft: "bg-[#e9dcc0] hover:bg-[#e0d0ae] text-[#3b2f1e]",
+    edge: "border-[#3b2f1e]/20",
+    chip: "bg-[#3b2f1e]/10 text-[#8a5a00]",
     swatch: "bg-[#f4ecd8] text-[#3b2f1e]",
   },
   light: {
     name: "Сафед",
     page: "bg-[#e6e4df] text-[#1c1f2a]", // soft grey-white, not a glaring white
     soft: "bg-[#d6d3cc] hover:bg-[#ccc8c0] text-[#1c1f2a]",
+    edge: "border-[#1c1f2a]/20",
+    chip: "bg-[#1c1f2a]/10 text-[#8a5a00]",
     swatch: "bg-[#e6e4df] text-[#1c1f2a]",
   },
 };
@@ -221,25 +227,43 @@ export default function Reader() {
     ))
   );
 
+  // previous / next: an arrow in a circle, "Previous"/"Next", and where it goes (page, chapter, or the end of the book)
+  const look = THEMES[theme];
+  const pageButton = (direction, onClick, disabled, target) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`min-w-0 flex items-center gap-2.5 p-3 rounded-2xl border ${look.edge} ${look.soft} ${direction === "next" ? "flex-row-reverse text-right" : "text-left"} disabled:opacity-50 disabled:cursor-default`}
+    >
+      <span className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${look.chip}`}>
+        <Icon name={direction === "next" ? "arrow_forward" : "arrow_back"} size={18} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-label-sm opacity-70">{t(direction === "next" ? "Баъд" : "Пеш")}</span>
+        <span className="block text-label-md font-semibold leading-tight line-clamp-2 break-words">{target}</span>
+      </span>
+    </button>
+  );
+
   const pageButtons = (
-    <div className="flex items-center justify-between gap-3 mt-12">
-      <button
-        onClick={previousPage}
-        disabled={pageNumber === 1 && !previousChapter}
-        className={`flex-1 min-w-0 p-3 rounded-xl text-label-md text-left truncate disabled:opacity-30 ${THEMES[theme].soft}`}
-      >
-        ← {pageNumber > 1 ? t("Саҳифаи пеш") : previousChapter?.title || ""}
-      </button>
-      <span className="shrink-0 px-2 text-label-md opacity-70">
+    <div className="mt-12 flex flex-col items-center gap-3">
+      <span className={`px-3 py-1 rounded-full border ${look.edge} text-label-sm font-semibold`}>
         {pageNumber} / {pages.length}
       </span>
-      <button
-        onClick={nextPage}
-        disabled={pageNumber === pages.length && !nextChapter}
-        className={`flex-1 min-w-0 p-3 rounded-xl text-label-md text-right truncate disabled:opacity-30 ${THEMES[theme].soft}`}
-      >
-        {pageNumber < pages.length ? t("Саҳифаи баъд") : nextChapter?.title || ""} →
-      </button>
+      <div className="w-full grid grid-cols-2 gap-3">
+      {pageButton(
+        "back",
+        previousPage,
+        pageNumber === 1 && !previousChapter,
+        pageNumber > 1 ? t("Саҳифаи пеш") : previousChapter?.title || t("Аввали китоб")
+      )}
+      {pageButton(
+        "next",
+        nextPage,
+        pageNumber === pages.length && !nextChapter,
+        pageNumber < pages.length ? t("Саҳифаи баъд") : nextChapter?.title || t("Охири китоб")
+      )}
+      </div>
     </div>
   );
 
