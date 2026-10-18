@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Cover from "../components/Cover.jsx";
 import Header from "../components/Header.jsx";
@@ -49,6 +49,25 @@ export default function Reader() {
     setTheme(value);
     saveSetting("reader-theme", value);
   }
+
+  // Going to another chapter turns the page like a real book: forward to the left, back to the right
+  const [turn, setTurn] = useState(null); // { direction: "next" | "back", id }
+  const lastOrder = useRef(null);
+  useEffect(() => {
+    if (!chapter) return;
+    if (lastOrder.current !== null && lastOrder.current !== chapter.order) {
+      setTurn({ direction: chapter.order > lastOrder.current ? "next" : "back", id: chapter.id });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    lastOrder.current = chapter.order;
+  }, [chapter]);
+
+  // safety: take the turning page away even if the "animation ended" event never comes (e.g. a hidden tab)
+  useEffect(() => {
+    if (!turn) return;
+    const timer = setTimeout(() => setTurn(null), 1200);
+    return () => clearTimeout(timer);
+  }, [turn]);
 
   const index = book?.chapters.findIndex((c) => c.id === chapter?.id) ?? -1;
   const previous = book?.chapters[index - 1];
@@ -115,7 +134,13 @@ export default function Reader() {
         </aside>
 
         {/* Middle: the page */}
-        <article className={`${THEMES[theme]} min-h-screen lg:min-h-0 px-5 py-6 md:rounded-3xl md:px-12 md:py-12 lg:px-16 md:shadow-2xl`}>
+        <article
+          className={`${THEMES[theme]} relative min-h-screen lg:min-h-0 px-5 py-6 md:rounded-3xl md:px-12 md:py-12 lg:px-16 md:shadow-2xl`}
+          style={{ perspective: 2000, perspectiveOrigin: "50% 400px" }}
+        >
+          {/* the turning page (index.css .page-flip): covers the new chapter, then turns over and away */}
+          {turn && <div key={turn.id} className={`page-flip page-flip-${turn.direction}`} onAnimationEnd={() => setTurn(null)} />}
+
           {loading ? (
             <Spinner />
           ) : (
