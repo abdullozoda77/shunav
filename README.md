@@ -89,3 +89,35 @@ routers/
 ```bash
 .venv/bin/python portraits.py
 ```
+
+## Оғоз дар Windows (PowerShell)
+
+Лозим: **Python 3.12+**, **Node.js 20+**, **Git**.
+
+```powershell
+git clone https://github.com/abdullozoda77/shunav.git
+cd shunav
+$env:PYTHONUTF8 = "1"                 # ҳарфҳои тоҷикӣ дар терминал дуруст
+
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt -r requirements-import.txt
+
+.venv\Scripts\python seed.py          # корбарон: admin/admin123, demo/demo123 + китобҳои намунавӣ
+.venv\Scripts\python import_books.py Рубоиёт Ашъор "Шоҳнома (достонҳои интихобӣ)"   # тайёр, якчанд сония
+.venv\Scripts\python covers.py        # муқоваҳо
+.venv\Scripts\python portraits.py     # портретҳои муаллифон
+
+cd frontend
+npm install
+npm run dev                           # http://localhost:5175
+```
+
+Китобҳои боқимонда (Гулистон, Маснавӣ, Бӯстон, Девони Ҳофиз) ҳанӯз ба кириллӣ гардонида нашудаанд —
+барои онҳо модели гардониш (бори аввал ~400 MB) зеркашӣ мешавад ва кор чанд соат давом мекунад:
+
+```powershell
+.venv\Scripts\python import_books.py Гулистон "Маснавии маънавӣ. Дафтари аввал" Бӯстон "Девони ғазалиёт"
+```
+
+Матнҳои аз Ганҷур гирифташуда (`data/ganjoor/`) ва натиҷаи гардониш (`data/tajik_cache.json`) дар репозиторий
+ҳастанд, бинобар ин ҳеҷ чиз аз нав зеркашӣ ё гардонида намешавад.

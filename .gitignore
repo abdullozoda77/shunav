@@ -8,5 +8,9 @@ media/audio/*
 frontend/node_modules/
 frontend/dist/
 .claude/
-/data/
+# data/: keep only what saves hours on a new computer (downloaded texts, converted Cyrillic, museum images)
+/data/*
+!/data/ganjoor/
+!/data/tajik_cache.json
+!/data/covers/
 media/authors/*
