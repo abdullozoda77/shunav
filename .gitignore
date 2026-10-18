@@ -4,6 +4,7 @@ __pycache__/
 *.db
 media/covers/*
 media/audio/*
+media/avatars/*
 !media/**/.gitkeep
 frontend/node_modules/
 frontend/dist/

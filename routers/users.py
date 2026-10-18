@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from auth import hash_password, verify_password, create_access_token, get_current_user
+from config import IMAGE_TYPES
 from database import get_db
 from models import User
 from schemas import UserCreate, UserRead, UserUpdate, LoginSchema, TokenSchema
+from utils import delete_file, save_file
+
+AVATAR_MAX_BYTES = 5 * 1024 * 1024
 
 router = APIRouter(tags=['Auth'])
 
@@ -53,6 +57,28 @@ def update_me(data: UserUpdate, db: Session = Depends(get_db), current_user: Use
         current_user.name = data.name
     if data.preferred_language is not None:
         current_user.preferred_language = data.preferred_language
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.post('/me/avatar', response_model=UserRead)
+def upload_avatar(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Profile photo: JPG, PNG or WEBP up to 5 MB. The old photo is deleted."""
+    if file.size is not None and file.size > AVATAR_MAX_BYTES:
+        raise HTTPException(status_code=400, detail='File is too large')
+    new_avatar = save_file(file, 'avatars', IMAGE_TYPES)
+    delete_file(current_user.avatar)
+    current_user.avatar = new_avatar
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.delete('/me/avatar', response_model=UserRead)
+def delete_avatar(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    delete_file(current_user.avatar)
+    current_user.avatar = None
     db.commit()
     db.refresh(current_user)
     return current_user

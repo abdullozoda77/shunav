@@ -3,12 +3,18 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import inspect, text
 
 from config import CORS_ORIGINS, MEDIA_DIR
 from database import Base, engine
 from routers import admin, authors, bookmarks, books, categories, chapters, favorites, listening, narrators, reports, reviews, stats, users
 
 Base.metadata.create_all(bind=engine)
+
+# The users table was made before the profile photo existed; SQLite needs the new column added by hand
+if 'avatar' not in [column['name'] for column in inspect(engine).get_columns('users')]:
+    with engine.begin() as connection:
+        connection.execute(text('ALTER TABLE users ADD COLUMN avatar VARCHAR'))
 
 app = FastAPI(
     title='Audiobooks API',

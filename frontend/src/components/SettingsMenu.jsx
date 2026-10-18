@@ -3,11 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth.jsx";
 import { useLanguage, useT } from "../i18n.jsx";
 import { useTheme } from "../theme.jsx";
+import Avatar from "./Avatar.jsx";
 import Icon from "./Icon.jsx";
 import LanguageSwitch from "./LanguageSwitch.jsx";
 import ThemeSwitch from "./ThemeSwitch.jsx";
 
-// The account button on the right of the top bar: the first letter of the name (a person icon for guests) and an arrow.
+// The account button on the right of the top bar: the profile photo or first letter (a person icon for guests) and an arrow.
 // Click: a menu with the account, language, light/dark theme and links. Guests get the same menu.
 export default function SettingsMenu() {
   const { user, logout } = useAuth();
@@ -46,9 +47,7 @@ export default function SettingsMenu() {
         aria-expanded={open}
         className={`h-9 pl-1 pr-1.5 rounded-full flex items-center gap-1 bg-surface-container-high hover:bg-surface-bright ${open ? "ring-1 ring-primary/50" : ""}`}
       >
-        <span className="w-7 h-7 rounded-full bg-primary/15 text-primary ring-1 ring-primary/30 flex items-center justify-center font-serif font-bold text-label-lg">
-          {user ? user.name[0].toUpperCase() : <Icon name="person" size={18} />}
-        </span>
+        <Avatar user={user} className="w-7 h-7 text-label-lg" />
         <Icon name={open ? "expand_less" : "expand_more"} size={18} className="text-on-surface-variant" />
       </button>
 
@@ -56,9 +55,7 @@ export default function SettingsMenu() {
         <div className="absolute right-0 top-full mt-3 w-[min(300px,calc(100vw-24px))] rounded-2xl overflow-hidden bg-surface-container-low border border-line/10 shadow-2xl z-[70]">
           {/* who */}
           <div className="p-4 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-primary/15 text-primary ring-1 ring-primary/30 flex items-center justify-center font-serif font-bold text-headline-sm shrink-0">
-              {user ? user.name[0].toUpperCase() : <Icon name="person" size={22} />}
-            </div>
+            <Avatar user={user} className="w-11 h-11 text-headline-sm" />
             <div className="min-w-0 flex-1">
               <p className="font-serif text-headline-sm leading-tight truncate">{user ? user.name : t("Меҳмон")}</p>
               <p className="text-label-sm text-on-surface-variant truncate">{user ? `@${user.username}` : t("Ворид нашудаед")}</p>

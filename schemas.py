@@ -58,6 +58,7 @@ class UserRead(ORMModel):
     username: str
     email: str
     preferred_language: str
+    avatar: str | None = None
     is_active: bool
     is_admin: bool
     created_at: datetime

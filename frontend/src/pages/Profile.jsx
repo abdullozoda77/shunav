@@ -1,5 +1,8 @@
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { api } from "../api.js";
 import { useAuth } from "../auth.jsx";
+import Avatar from "../components/Avatar.jsx";
 import BooksBackground from "../components/BooksBackground.jsx";
 import Cover from "../components/Cover.jsx";
 import Icon from "../components/Icon.jsx";
@@ -59,15 +62,13 @@ export default function Profile() {
 
   return (
     <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-6 md:gap-8">
-      {/* banner: the reader in an arch (like the author portraits), name, and listener level */}
+      {/* banner: profile photo, name, and listener level */}
       <section className="relative overflow-hidden rounded-3xl bg-surface-container-low border border-line/5 p-5 md:p-10 shadow-xl">
         <BooksBackground className="opacity-[0.10]" style={{ maskImage: "linear-gradient(to left, black 25%, transparent 75%)" }} />
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_10%_0%,rgb(var(--c-primary)/0.16),transparent_45%),radial-gradient(circle_at_95%_100%,rgb(var(--c-secondary)/0.10),transparent_45%)]" />
 
         <div className="relative grid gap-6 md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_300px] md:items-center md:gap-8">
-          <div className="w-24 h-32 md:w-32 md:h-40 rounded-t-full rounded-b-2xl border-2 border-primary/50 bg-gradient-to-b from-primary/25 to-surface-container-high shadow-[0_16px_36px_-14px_rgb(var(--c-primary)/0.6)] flex items-end justify-center pb-4 md:pb-6">
-            <span className="font-serif font-bold text-primary text-[44px] md:text-[60px] leading-none">{user.name[0].toUpperCase()}</span>
-          </div>
+          <ProfilePhoto />
 
           <div className="min-w-0 flex flex-col gap-2">
             <span className="flex items-center gap-2 text-label-sm uppercase tracking-[0.2em] text-primary">
@@ -120,7 +121,14 @@ export default function Profile() {
         <SectionTitle icon="insights" title={t("Омори ман")} />
         <div className="grid gap-3 md:gap-4 lg:grid-cols-2">
           <div className="relative overflow-hidden p-5 md:p-6 rounded-2xl bg-gradient-to-br from-surface-container-high to-surface-container flex flex-col gap-4">
-            <Icon name="graphic_eq" size={120} className="absolute -right-4 -bottom-6 text-primary/10" />
+            {/* moving equalizer bars in the corner (index.css .eq-bars) */}
+            <span className="eq-bars" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </span>
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
                 <Icon name="headphones" size={22} />
@@ -222,6 +230,77 @@ export default function Profile() {
           </section>
         </aside>
       </div>
+    </div>
+  );
+}
+
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+// Round profile photo (or the first letter). Click it or the camera to choose a new photo; the bin removes it.
+function ProfilePhoto() {
+  const { user, setUser } = useAuth();
+  const t = useT();
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function run(action) {
+    setBusy(true);
+    setError("");
+    try {
+      setUser(await action());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function choose(event) {
+    const file = event.target.files?.[0];
+    event.target.value = ""; // the same file can be chosen again
+    if (!file) return;
+    if (file.size > PHOTO_MAX_BYTES) return setError(t("Сурат бояд то 5 МБ бошад"));
+    run(() => api.upload("/me/avatar", file));
+  }
+
+  const ring = "border-4 border-surface-container-low";
+
+  return (
+    <div className="flex flex-col items-center gap-2 w-fit">
+      <div className="relative">
+        <button onClick={() => input.current.click()} disabled={busy} className="group relative block rounded-full" aria-label={t("Иваз кардани сурат")}>
+          <Avatar
+            user={user}
+            className="w-28 h-28 md:w-36 md:h-36 text-[48px] md:text-[60px] ring-2 ring-primary/60 ring-offset-4 ring-offset-surface-container-low shadow-[0_16px_36px_-14px_rgb(var(--c-primary)/0.6)]"
+          />
+          <span className={`absolute inset-0 rounded-full bg-black/45 text-white flex items-center justify-center transition-opacity ${busy ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+            {busy ? <span className="w-7 h-7 rounded-full border-2 border-white border-t-transparent animate-spin" /> : <Icon name="photo_camera" size={30} />}
+          </span>
+        </button>
+        <button
+          onClick={() => input.current.click()}
+          disabled={busy}
+          className={`absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center hover:brightness-110 ${ring}`}
+          aria-label={t("Иваз кардани сурат")}
+          title={t("Иваз кардани сурат")}
+        >
+          <Icon name="photo_camera" size={18} />
+        </button>
+        {user.avatar && (
+          <button
+            onClick={() => run(() => api.delete("/me/avatar"))}
+            disabled={busy}
+            className={`absolute bottom-0 left-0 w-9 h-9 rounded-full bg-surface-container-high text-error flex items-center justify-center hover:bg-error/15 ${ring}`}
+            aria-label={t("Нест кардани сурат")}
+            title={t("Нест кардани сурат")}
+          >
+            <Icon name="delete" size={16} />
+          </button>
+        )}
+      </div>
+      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={choose} />
+      {error && <p className="text-label-sm text-error max-w-[11rem] text-center">{error}</p>}
     </div>
   );
 }

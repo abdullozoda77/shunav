@@ -24,12 +24,14 @@ async function request(method, path, body) {
   const headers = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  // a file goes as a form (FormData sets its own Content-Type), everything else as JSON
+  const isForm = body instanceof FormData;
+  if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
 
   const response = await fetch(API + path, {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined || isForm ? body : JSON.stringify(body),
   });
 
   if (response.status === 204) return null;
@@ -52,4 +54,10 @@ export const api = {
   put: (path, body) => request("PUT", path, body),
   patch: (path, body) => request("PATCH", path, body),
   delete: (path) => request("DELETE", path),
+  // api.upload("/me/avatar", file)
+  upload: (path, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request("POST", path, form);
+  },
 };
