@@ -16,6 +16,27 @@ from import_books import AUTHORS, BOOKS, REPLACES
 from models import Author, Book, Category, Chapter
 
 RAW = 'data/texts/raw'
+
+# authors and books that import_books.py (Ganjoor) does not have
+MORE_AUTHORS = {
+    'ayni': dict(name='Садриддин Айнӣ', birth_year=1878, death_year=1954, bio='Асосгузори адабиёти навини тоҷик.'),
+    'bedil': dict(name='Мирзо Абдулқодири Бедил', birth_year=1644, death_year=1720,
+                  bio='Шоир ва мутафаккири бузург, устоди «сабки ҳиндӣ», ки дар Мовароуннаҳр хеле дӯсташ медоштанд.'),
+}
+MASNAVI = 'Дафтари {}-и «Маснавии маънавӣ»-и Мавлоно Ҷалолиддини Балхӣ — ҳикоятҳо ва ҳикматҳои ирфонӣ.'
+MORE_BOOKS = [
+    dict(title='Шоҳнома. Ҷилди 1', author='ferdowsi', category='Достон',
+         description='Ҷилди аввали «Шоҳнома»: аз оғози китоб ва подшоҳии Каюмарс то Ҷамшед, Заҳҳок, Фаридун ва '
+                     'Манучеҳр, ишқи Золу Рӯдоба, зодани Рустам ва гирифтани Рахш.'),
+    *[dict(title=f'Маснавии маънавӣ. Дафтари {n}', author='rumi', category='Достон', description=MASNAVI.format(word))
+      for n, word in [('дуюм', 'дуюм'), ('сеюм', 'сеюм'), ('чаҳорум', 'чаҳорум'), ('панҷум', 'панҷум'), ('шашум', 'шашум')]],
+    dict(title='Одина', author='ayni', category='Наср',
+         description='Қиссаи Садриддин Айнӣ (1924) — саргузашти ҷавони камбағал Одина ва ишқи ӯ ба Гулбибӣ, '
+                     'тасвири зиндагии деҳқонони тоҷик дар замони амирӣ.'),
+    dict(title='Ёддоштҳо. Қисми 4', author='ayni', category='Наср',
+         description='Қисми чоруми «Ёддоштҳо»-и Садриддин Айнӣ — хотироти нависанда аз Бухорои охири асри XIX: '
+                     'мадраса, мардум ва урфу одатҳои замон.'),
+]
 NOTE = '\n\nМатн аз нашри тоҷикии китоб (kitobkhon.net) гирифта шудааст.'
 WRAP = 64  # a prose line this long was cut by the page width; the next line goes on with it
 
@@ -41,7 +62,15 @@ def all_lines(book_pages, first_page):
     for number in sorted(book_pages):
         if number >= first_page:
             lines.extend(book_pages[number] + [''])
-    return lines
+    # a word the PDF broke into two lines ("Шаҳ Ҳ" + "усомуддин, ки ...") is put back together
+    joined = []
+    for line in lines:
+        last_word = joined[-1].split(' ')[-1] if joined and joined[-1] else ''
+        if 0 < len(last_word) <= 2 and last_word[0].isupper() and line[:1].islower():
+            joined[-1] += line
+        else:
+            joined.append(line)
+    return joined
 
 
 def tidy(lines):
@@ -115,13 +144,16 @@ def read_hofiz():
     return chapters
 
 
-def read_masnavi():
-    """After a blank line, a long prose line is a story heading (wrapped headings go on to the next line).
+def read_masnavi(name='masnavi'):
+    """A daftar of the Masnavi: its prose preface is left out (the verse starts at the first two short lines after it).
+    After a blank line, a long prose line is a story heading (wrapped headings go on to the next line).
     15 stories in a chapter."""
-    lines = all_lines(pages('masnavi'), 1)
-    start = next(i for i, line in enumerate(lines) if line.startswith('Бишнав аз най'))
+    lines = all_lines(pages(name), 2)
+    start = next(i for i in range(len(lines) - 1)
+                 if lines[i] and lines[i + 1] and len(lines[i]) <= 46 and len(lines[i + 1]) <= 46
+                 and not lines[i].startswith(('Муқаддима', 'Бисми')))
     lines = lines[start:]
-    stories, heading, body = [], 'Бишнав аз най', []
+    stories, heading, body = [], 'Бишнав аз най' if name == 'masnavi' else 'Оғози дафтар', []
     i = 0
     while i < len(lines):
         line = lines[i]
@@ -137,7 +169,8 @@ def read_masnavi():
                 if following is None:
                     break
                 after = lines[following]
-                if not (after[0].islower() or (len(parts[-1]) >= WRAP and not after.endswith((',', ':', ';')))):
+                long_prose = len(after) >= 50  # verse lines are shorter
+                if not long_prose and (after.endswith((',', ':', ';')) or not (after[0].islower() or len(parts[-1]) >= WRAP)):
                     break
                 i = following
                 parts.append(after)
@@ -306,18 +339,84 @@ def read_rudaki():
             + chapters_of(masnavi, 'Порчаҳои маснавӣ ва достонҳо', 'Порчаи', 100))
 
 
+SHOHNOMA_NAMES = ['каюмарс', 'сиёмак', 'ҳушанг', 'таҳмурас', 'ҷамшед', 'заҳҳок', 'фаридун', 'эраҷ', 'салм', 'тур', 'манучеҳр',
+                  'сом', 'зол', 'рӯдоба', 'меҳроб', 'синдухт', 'рустам', 'нӯзар', 'пашанг', 'афросиёб', 'ағрирас', 'зав',
+                  'таҳмосп', 'гаршосп', 'кова', 'иблис', 'яман', 'ҷандал', 'сарв', 'қорон', 'кокуй', 'кобулӣ', 'сипанд',
+                  'рахш', 'маҳмуд', 'абӯмансур', 'муҳаммад', 'дақиқӣ', 'шоҳнома', 'алонон', 'рӯдобаро', 'фаридунро',
+                  'заҳҳокро', 'манучеҳрро', 'золро', 'синдухтро', 'рахшро', 'ҷамшедро']
+
+
+def small_caps(line):
+    """Headings of this edition are printed in small capitals: in the text they come out as 'гуФтор андар'."""
+    letters = re.sub(r'[^А-Яа-яЁёӢӣӮӯҲҳҚқҒғҶҷ]', '', line)
+    return bool(letters) and (bool(re.search(r'[а-яёӣӯҳқғҷ][А-ЯЁӢӮҲҚҒҶ]', line)) or (letters.isupper() and len(letters) > 3))
+
+
+def heading_case(text):
+    """'кушта шудани сиЁмак бар дасти дЕв' -> 'Кушта шудани Сиёмак бар дасти дев'."""
+    words = text.lower().split()
+    words = [w.capitalize() if w.strip('«»"“”') in SHOHNOMA_NAMES else w for w in words]
+    text = ' '.join(words)
+    return text[:1].upper() + text[1:]
+
+
+def read_shohnoma():
+    """From 'Оғози китоб' to the contents at the end. Verse lines start with their number, words carry note numbers,
+    notes are at the foot of the page ("1. И – ..."). Stories start with small-capital headings; about 20 000
+    letters of stories make a chapter, named after its first story."""
+    book_pages = pages('shohnoma')
+    sections, heading, body = [], None, []
+    for number in sorted(book_pages):
+        if number < 23:
+            continue
+        page = book_pages[number]
+        if sum('.....' in line for line in page) > 3:  # the contents: the end of the book
+            break
+        for line in page:
+            if re.match(r'^\d+\.\s', line):  # notes to the end of the page
+                break
+            line = re.sub(r'^\d+\s+', '', line)  # verse number
+            line = re.sub(r'(?<=[^\d\s])\d+(?=[\s.,!?;:»…]|$)', '', line).strip()  # note number in a word
+            # verse lines start with a capital; heading lines (even without a capital in them) with a small letter
+            if line and (small_caps(line) or line[0].islower()):
+                if heading is not None and not any(body):  # a heading on two lines
+                    heading = f'{heading} {line}'
+                    continue
+                if heading is not None:
+                    sections.append((heading_case(heading), body))
+                heading, body = line, []
+            elif heading is not None:
+                body.append(line)
+        body.append('')
+    sections.append((heading_case(heading), body))
+
+    chapters, current, size = [], [], 0
+    for item in sections:
+        current.append(item)
+        size += sum(len(l) for l in item[1])
+        if size > 20000:
+            chapters.append(current)
+            current, size = [], 0
+    if current:
+        chapters.append(current)
+    return [(group[0][0], '\n\n\n'.join(section(h, b) for h, b in group)) for group in chapters]
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
     'masnavi': ('Маснавии маънавӣ. Дафтари аввал', read_masnavi),
     'ruboiyot': ('Рубоиёт', read_ruboiyot),
     'rudaki': ('Ашъор', read_rudaki),
+    'shohnoma': ('Шоҳнома. Ҷилди 1', read_shohnoma),
+    **{f'masnavi{n}': (f'Маснавии маънавӣ. Дафтари {word}', lambda n=n: read_masnavi(f'masnavi{n}'))
+       for n, word in [(2, 'дуюм'), (3, 'сеюм'), (4, 'чаҳорум'), (5, 'панҷум'), (6, 'шашум')]},
 }
 
 
 def save(db, title, chapters):
-    book = next(b for b in BOOKS if b['title'] == title)
-    info = AUTHORS[book['author']]
+    book = next(b for b in BOOKS + MORE_BOOKS if b['title'] == title)
+    info = {**AUTHORS, **MORE_AUTHORS}[book['author']]
     author = db.query(Author).filter(Author.name == info['name']).first() or Author(**info)
     category = db.query(Category).filter(Category.name == book['category']).first() or Category(name=book['category'])
     for old_title in [title] + REPLACES.get(title, []):
