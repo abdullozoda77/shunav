@@ -26,9 +26,9 @@ const THEMES = {
   },
   light: {
     name: "Сафед",
-    page: "bg-white text-[#1c1f2a]",
-    soft: "bg-[#f1efea] hover:bg-[#e7e4dd] text-[#1c1f2a]",
-    swatch: "bg-white text-[#1c1f2a]",
+    page: "bg-[#e6e4df] text-[#1c1f2a]", // soft grey-white, not a glaring white
+    soft: "bg-[#d6d3cc] hover:bg-[#ccc8c0] text-[#1c1f2a]",
+    swatch: "bg-[#e6e4df] text-[#1c1f2a]",
   },
 };
 
