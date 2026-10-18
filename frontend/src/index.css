@@ -116,19 +116,15 @@ body {
   animation-fill-mode: forwards;
 }
 
-/* Reader.jsx: a page turning over when the chapter changes.
-   It has the same colour as the page (inherit), lifts at one edge and turns 180° around the other, like a book. */
+/* Reader.jsx: a copy of the old page lies exactly over the new one, then turns over like a book page:
+   forward = lifts at the right edge and turns around the left one (the spine), back = the other way. */
 .page-flip {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: min(100%, 100vh); /* only the part you see: a whole chapter is very tall */
-  z-index: 30;
-  border-radius: inherit;
-  background: inherit;
+  inset: 0;
+  overflow: hidden;
   pointer-events: none;
   backface-visibility: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
   animation-duration: 0.9s;
   animation-timing-function: cubic-bezier(0.45, 0.05, 0.25, 1);
   animation-fill-mode: forwards;

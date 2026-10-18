@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Cover from "../components/Cover.jsx";
 import Header from "../components/Header.jsx";
 import Icon from "../components/Icon.jsx";
@@ -13,6 +13,12 @@ const THEMES = {
   sepia: "bg-[#f4ecd8] text-[#3b2f1e]",
   light: "bg-white text-[#1c1f2a]",
 };
+
+// The page's inner space (the turning copy of the page uses the same, so it lies exactly on top)
+const PAGE_PADDING = "px-5 py-6 md:px-12 md:py-12 lg:px-16";
+
+// About this many letters on one page; a poem or story is never cut in the middle
+const PAGE_LETTERS = 2500;
 
 function readSetting(key, fallback) {
   try {
@@ -32,6 +38,8 @@ function saveSetting(key, value) {
 
 export default function Reader() {
   const { chapterId } = useParams();
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
   const player = usePlayer();
   const { data: chapter, loading } = useApi(`/chapters/${chapterId}`);
   const { data: book } = useApi(chapter ? `/books/${chapter.book_id}` : null);
@@ -50,31 +58,94 @@ export default function Reader() {
     saveSetting("reader-theme", value);
   }
 
-  // Going to another chapter turns the page like a real book: forward to the left, back to the right
-  const [turn, setTurn] = useState(null); // { direction: "next" | "back", id }
-  const lastOrder = useRef(null);
-  useEffect(() => {
-    if (!chapter) return;
-    if (lastOrder.current !== null && lastOrder.current !== chapter.order) {
-      setTurn({ direction: chapter.order > lastOrder.current ? "next" : "back", id: chapter.id });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-    lastOrder.current = chapter.order;
-  }, [chapter]);
-
-  // safety: take the turning page away even if the "animation ended" event never comes (e.g. a hidden tab)
-  useEffect(() => {
-    if (!turn) return;
-    const timer = setTimeout(() => setTurn(null), 1200);
-    return () => clearTimeout(timer);
-  }, [turn]);
+  // ---------- pages ----------
+  const sections = splitSections(chapter?.text || "");
+  const pages = makePages(sections);
+  const pageParam = params.get("page");
+  const pageNumber = pageParam === "last" ? pages.length : Math.min(Math.max(Number(pageParam) || 1, 1), pages.length);
+  const pageSections = pages[pageNumber - 1] || [];
 
   const index = book?.chapters.findIndex((c) => c.id === chapter?.id) ?? -1;
-  const previous = book?.chapters[index - 1];
-  const next = book?.chapters[index + 1];
+  const previousChapter = book?.chapters[index - 1];
+  const nextChapter = book?.chapters[index + 1];
 
-  const sections = splitSections(chapter?.text || "");
+  // ---------- turning the page ----------
+  // A copy of what is on the screen now lies over the page and turns away; the new page is under it.
+  const pageRef = useRef(null);
+  const [turn, setTurn] = useState(null); // { direction: "next" | "back", html, box, offset, key }
+  const scrollToPart = useRef(null);
 
+  function startTurn(direction) {
+    const page = pageRef.current;
+    if (!page) return;
+    const rect = page.getBoundingClientRect();
+    const headerHeight = window.innerWidth >= 768 ? 72 : 64;
+    const top = Math.max(rect.top, headerHeight);
+    const bottom = Math.min(rect.bottom, window.innerHeight);
+    if (bottom > top) {
+      setTurn({
+        direction,
+        html: page.innerHTML,
+        box: { left: rect.left, top, width: rect.width, height: bottom - top },
+        offset: rect.top - top, // how far the page is scrolled under the visible part
+        key: Date.now(),
+      });
+    }
+    window.scrollTo({ top: 0, behavior: "instant" }); // the new page starts at its top (the copy stays where it is)
+  }
+
+  function goToPage(number, part = null) {
+    if (number === pageNumber) {
+      if (part !== null) document.getElementById(`part-${part}`)?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    startTurn(number > pageNumber ? "next" : "back");
+    scrollToPart.current = part;
+    setParams({ page: String(number) });
+  }
+
+  function goToChapter(target, page = null) {
+    if (!target || target.id === chapter?.id) return;
+    startTurn(target.order > chapter.order ? "next" : "back");
+    navigate(`/read/${target.id}${page ? `?page=${page}` : ""}`);
+  }
+
+  function nextPage() {
+    if (pageNumber < pages.length) goToPage(pageNumber + 1);
+    else goToChapter(nextChapter);
+  }
+
+  function previousPage() {
+    if (pageNumber > 1) goToPage(pageNumber - 1);
+    else goToChapter(previousChapter, "last");
+  }
+
+  // after "jump to a poem" on another page: scroll to it once the page is there
+  useEffect(() => {
+    if (scrollToPart.current === null) return;
+    document.getElementById(`part-${scrollToPart.current}`)?.scrollIntoView();
+    scrollToPart.current = null;
+  }, [pageNumber]);
+
+  // the ← → keys turn pages
+  useEffect(() => {
+    function onKey(event) {
+      if (event.target.closest?.("input, textarea")) return; // typing in a box: not a page turn
+      if (event.key === "ArrowRight") nextPage();
+      if (event.key === "ArrowLeft") previousPage();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  // safety: take the copy away even if the "animation ended" event never comes (e.g. a hidden tab)
+  useEffect(() => {
+    if (!turn || loading) return;
+    const timer = setTimeout(() => setTurn(null), 1500);
+    return () => clearTimeout(timer);
+  }, [turn, loading]);
+
+  // ---------- parts of the screen ----------
   const settings = (
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1 bg-surface-container-high text-on-surface rounded-full p-1">
@@ -95,11 +166,41 @@ export default function Reader() {
     </div>
   );
 
-  const contentsLinks = sections.map((section, index) => (
-    <a key={index} href={`#part-${index}`} className="block text-body-sm text-on-surface-variant hover:text-primary truncate py-1">
-      {section.heading || "Аввал"}
-    </a>
-  ));
+  // every poem/story of the chapter, with the page it is on
+  const contentsLinks = pages.flatMap((page, pageIndex) =>
+    page.map(({ section, index: part }) => (
+      <button
+        key={part}
+        onClick={() => goToPage(pageIndex + 1, part)}
+        className={`flex justify-between gap-2 w-full text-left text-body-sm truncate py-1 hover:text-primary ${pageIndex + 1 === pageNumber ? "text-on-surface" : "text-on-surface-variant"}`}
+      >
+        <span className="truncate">{section.heading || "Аввал"}</span>
+        <span className="text-outline shrink-0">{pageIndex + 1}</span>
+      </button>
+    ))
+  );
+
+  const pageButtons = (
+    <div className="flex items-center justify-between gap-3 mt-12">
+      <button
+        onClick={previousPage}
+        disabled={pageNumber === 1 && !previousChapter}
+        className="flex-1 min-w-0 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-left truncate hover:bg-surface-container-high disabled:opacity-30"
+      >
+        ← {pageNumber > 1 ? "Саҳифаи пеш" : previousChapter?.title || ""}
+      </button>
+      <span className="shrink-0 px-2 text-label-md opacity-70">
+        {pageNumber} / {pages.length}
+      </span>
+      <button
+        onClick={nextPage}
+        disabled={pageNumber === pages.length && !nextChapter}
+        className="flex-1 min-w-0 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-right truncate hover:bg-surface-container-high disabled:opacity-30"
+      >
+        {pageNumber < pages.length ? "Саҳифаи баъд" : nextChapter?.title || ""} →
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-surface">
@@ -121,40 +222,41 @@ export default function Reader() {
           <div className="rounded-2xl bg-surface-container-low p-2 overflow-y-auto">
             <p className="px-3 py-2 text-label-sm uppercase tracking-wider text-on-surface-variant">Бобҳо</p>
             {book?.chapters.map((item) => (
-              <Link
+              <button
                 key={item.id}
-                to={`/read/${item.id}`}
-                className={`flex gap-2 px-3 py-2 rounded-xl text-body-sm ${item.id === chapter?.id ? "bg-primary/15 text-primary font-semibold" : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"}`}
+                onClick={() => goToChapter(item)}
+                className={`flex gap-2 w-full text-left px-3 py-2 rounded-xl text-body-sm ${item.id === chapter?.id ? "bg-primary/15 text-primary font-semibold" : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"}`}
               >
                 <span className="w-5 shrink-0 text-right opacity-70">{item.order}</span>
                 <span className="truncate">{item.title}</span>
-              </Link>
+              </button>
             ))}
           </div>
         </aside>
 
         {/* Middle: the page */}
-        <article
-          className={`${THEMES[theme]} relative min-h-screen lg:min-h-0 px-5 py-6 md:rounded-3xl md:px-12 md:py-12 lg:px-16 md:shadow-2xl`}
-          style={{ perspective: 2000, perspectiveOrigin: "50% 400px" }}
-        >
-          {/* the turning page (index.css .page-flip): covers the new chapter, then turns over and away */}
-          {turn && <div key={turn.id} className={`page-flip page-flip-${turn.direction}`} onAnimationEnd={() => setTurn(null)} />}
-
-          {loading ? (
+        <article ref={pageRef} className={`${THEMES[theme]} relative min-h-screen lg:min-h-0 md:rounded-3xl md:shadow-2xl ${PAGE_PADDING}`}>
+          {!chapter ? (
             <Spinner />
           ) : (
             <>
               <div className="lg:hidden mb-6">{settings}</div>
 
-              <div className="text-center mb-8">
-                <p className="text-label-sm uppercase tracking-[0.2em] text-primary-container">Боби {chapter.order}</p>
-                <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px] font-semibold mt-2">{chapter.title}</h1>
-                {book && <p className="font-serif text-body-sm opacity-60 mt-2">{book.title} — {book.author.name}</p>}
-                <div className="mx-auto mt-5 w-24 h-px bg-primary-container/50" />
-              </div>
+              {pageNumber === 1 ? (
+                <div className="text-center mb-8">
+                  <p className="text-label-sm uppercase tracking-[0.2em] text-primary-container">Боби {chapter.order}</p>
+                  <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px] font-semibold mt-2">{chapter.title}</h1>
+                  {book && <p className="font-serif text-body-sm opacity-60 mt-2">{book.title} — {book.author.name}</p>}
+                  <div className="mx-auto mt-5 w-24 h-px bg-primary-container/50" />
+                </div>
+              ) : (
+                // later pages: just a small line on top
+                <p className="text-center text-label-sm uppercase tracking-[0.2em] text-primary-container mb-8">
+                  Боби {chapter.order} · {chapter.title} · саҳифаи {pageNumber}
+                </p>
+              )}
 
-              {chapter.audio_file && book && (
+              {pageNumber === 1 && chapter.audio_file && book && (
                 <div className="flex justify-center mb-8">
                   <button
                     onClick={() => player.playChapter(book, book.chapters.find((c) => c.id === chapter.id), 0)}
@@ -166,19 +268,19 @@ export default function Reader() {
               )}
 
               {/* contents on phones (wide screens have it on the right) */}
-              {sections.length > 3 && (
+              {pageNumber === 1 && sections.length > 3 && (
                 <details className="lg:hidden mb-8 rounded-xl bg-surface-container text-on-surface">
                   <summary className="cursor-pointer p-4 text-label-lg flex items-center gap-2">
                     <Icon name="list" size={20} className="text-primary" /> Мундариҷаи боб ({sections.length})
                   </summary>
-                  <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-x-3 max-h-72 overflow-y-auto">{contentsLinks}</div>
+                  <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-x-4 max-h-72 overflow-y-auto">{contentsLinks}</div>
                 </details>
               )}
 
               {sections.length === 0 && <p className="font-serif opacity-70 text-center">Матни ин боб ҳоло илова нашудааст.</p>}
 
-              {sections.map((section, index) => (
-                <section key={index} id={`part-${index}`} className="mb-10 scroll-mt-28">
+              {pageSections.map(({ section, index: part }) => (
+                <section key={part} id={`part-${part}`} className="mb-10 scroll-mt-28">
                   {section.heading && (
                     <h2 className="font-serif text-primary-container text-center mb-4 flex items-center justify-center gap-3" style={{ fontSize: size * 0.9 }}>
                       <span className="h-px w-8 bg-current opacity-40" />
@@ -198,20 +300,7 @@ export default function Reader() {
                 </section>
               ))}
 
-              <div className="flex justify-between gap-3 mt-12">
-                {previous ? (
-                  <Link to={`/read/${previous.id}`} className="flex-1 p-3 rounded-xl bg-surface-container text-on-surface text-label-md truncate hover:bg-surface-container-high">
-                    ← {previous.title}
-                  </Link>
-                ) : (
-                  <span className="flex-1" />
-                )}
-                {next && (
-                  <Link to={`/read/${next.id}`} className="flex-1 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-right truncate hover:bg-surface-container-high">
-                    {next.title} →
-                  </Link>
-                )}
-              </div>
+              {pageButtons}
             </>
           )}
         </article>
@@ -224,12 +313,29 @@ export default function Reader() {
           </div>
           {sections.length > 1 && (
             <div className="rounded-2xl bg-surface-container-low p-3 overflow-y-auto">
-              <p className="text-label-sm uppercase tracking-wider text-on-surface-variant mb-2">Мундариҷаи боб ({sections.length})</p>
+              <p className="text-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
+                Мундариҷаи боб ({sections.length}) · {pages.length} саҳифа
+              </p>
               {contentsLinks}
             </div>
           )}
         </aside>
       </main>
+
+      {/* the turning copy of the old page (index.css .page-flip); for a new chapter it waits until the chapter has loaded */}
+      {turn && (
+        <div className="fixed z-40 pointer-events-none" style={{ ...turn.box, perspective: 2000 }}>
+          <div
+            key={turn.key}
+            className={`page-flip page-flip-${turn.direction} ${THEMES[theme]} md:rounded-3xl`}
+            style={{ animationPlayState: loading ? "paused" : "running" }}
+            onAnimationEnd={() => setTurn(null)}
+          >
+            <div className={`absolute left-0 w-full ${PAGE_PADDING}`} style={{ top: turn.offset }} dangerouslySetInnerHTML={{ __html: turn.html }} />
+          </div>
+        </div>
+      )}
+
       <MiniPlayer />
     </div>
   );
@@ -252,6 +358,26 @@ function splitSections(text) {
   }
   if (current.heading || current.paragraphs.length) sections.push(current);
   return sections;
+}
+
+// Sections -> pages of about PAGE_LETTERS letters: [[{section, index}, ...], ...]. Always at least one page.
+function makePages(sections) {
+  const pages = [];
+  let page = [];
+  let letters = 0;
+
+  sections.forEach((section, index) => {
+    const size = section.paragraphs.join("").length;
+    if (page.length && letters + size > PAGE_LETTERS) {
+      pages.push(page);
+      page = [];
+      letters = 0;
+    }
+    page.push({ section, index });
+    letters += size;
+  });
+  if (page.length || !pages.length) pages.push(page);
+  return pages;
 }
 
 // Verse = every line is short (half-bayts). Prose paragraphs are long.
