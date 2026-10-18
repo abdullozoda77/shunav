@@ -14,7 +14,6 @@ router = APIRouter(tags=['Copyright reports'])
 
 @router.post('/books/{book_id}/report', response_model=ReportRead, status_code=201)
 def report_book(book_id: int, data: ReportCreate, db: Session = Depends(get_db)):
-    """Anyone, even without an account, can say a book breaks someone's copyright."""
     get_or_404(db, Book, book_id)
 
     report = CopyrightReport(book_id=book_id, **data.model_dump())

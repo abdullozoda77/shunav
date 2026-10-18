@@ -1,5 +1,4 @@
-"""Make an admin:  python create_admin.py <username> <email> <password>
-If the user already exists, it only gets admin rights."""
+
 import sys
 
 from auth import hash_password

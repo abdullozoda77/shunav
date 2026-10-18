@@ -13,7 +13,6 @@ router = APIRouter(prefix='/admin', tags=['Admin'])
 
 @router.get('/books', response_model=list[BookRead])
 def all_books(db: Session = Depends(get_db), admin: User = Depends(get_admin_user)):
-    """Every book, hidden ones too."""
     return db.query(Book).order_by(Book.id.desc()).all()
 
 

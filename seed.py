@@ -1,6 +1,4 @@
-"""Fill an empty database with demo data:  python seed.py
-Creates the admin (admin / admin123), a demo user (demo / demo123), classic books with chapters,
-and short demo audio (a quiet tone) for «Гулистон», so the player can be tried before real recordings exist."""
+
 import math
 import os
 import struct
@@ -20,7 +18,6 @@ if db.query(Book).first():
 
 
 def make_demo_audio(seconds: int) -> str:
-    """A soft 220 Hz tone, saved as a WAV file in media/audio/."""
     os.makedirs(f'{MEDIA_DIR}/audio', exist_ok=True)
     path = f'{MEDIA_DIR}/audio/demo-{uuid.uuid4().hex[:8]}.wav'
     rate = 8000
@@ -35,16 +32,13 @@ def make_demo_audio(seconds: int) -> str:
     return '/' + path
 
 
-# Users
 admin = User(name='Админ', username='admin', email='admin@shunav.tj', password_hash=hash_password('admin123'), is_admin=True)
 demo = User(name='Фаррух', username='demo', email='demo@shunav.tj', password_hash=hash_password('demo123'))
 db.add_all([admin, demo])
 
-# Categories
 categories = {name: Category(name=name) for name in ['Шеър', 'Наср', 'Достон', 'Ғазал', 'Рубоӣ']}
 db.add_all(categories.values())
 
-# Authors
 saadi = Author(name='Саъдии Шерозӣ', birth_year=1213, death_year=1291, bio='Шоир ва нависандаи бузурги форсу тоҷик, муаллифи «Гулистон» ва «Бӯстон».')
 ferdowsi = Author(name='Абулқосим Фирдавсӣ', birth_year=940, death_year=1020, bio='Муаллифи «Шоҳнома», бузургтарин достони қаҳрамонии форсу тоҷик.')
 khayyam = Author(name='Умари Хайём', birth_year=1048, death_year=1131, bio='Шоир, риёзидон ва ситорашиноси машҳур, устоди рубоӣ.')

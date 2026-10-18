@@ -10,7 +10,6 @@ from utils import get_or_404, get_visible_book
 
 router = APIRouter(tags=['Listening'])
 
-# A chapter counts as finished when less than this many seconds are left
 FINISHED_GAP = 10
 
 
@@ -80,7 +79,6 @@ def my_stats(db: Session = Depends(get_db), current_user: User = Depends(get_cur
 
     listened_seconds = sum(row.position_seconds for row in rows)
 
-    # chapters the user finished, grouped by book
     finished_chapters = {}
     for row in rows:
         chapter = row.chapter

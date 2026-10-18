@@ -12,7 +12,6 @@ from models import User
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
-# Swagger shows an "Authorize" button for this
 bearer = HTTPBearer(auto_error=False)
 
 

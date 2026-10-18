@@ -68,12 +68,10 @@ def reorder_chapters(book_id: int, data: ChapterOrder, db: Session = Depends(get
 
     chapters = {chapter.id: chapter for chapter in book.chapters}
 
-    # Step 1: move all to free numbers, so the unique (book, order) rule does not break in the middle
     for chapter in book.chapters:
         chapter.order = chapter.order + 100000
     db.flush()
 
-    # Step 2: give the new numbers 1, 2, 3...
     for number, chapter_id in enumerate(data.chapter_ids, start=1):
         chapters[chapter_id].order = number
 
@@ -98,7 +96,6 @@ def upload_audio(
     db: Session = Depends(get_db),
     admin: User = Depends(get_admin_user)
 ):
-    """Upload a ready audio file (read by a person, or made with a TTS voice)."""
     chapter = get_or_404(db, Chapter, chapter_id)
 
     new_audio = save_file(file, 'audio', AUDIO_TYPES)
