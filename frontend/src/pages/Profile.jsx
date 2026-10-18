@@ -5,6 +5,7 @@ import LanguageSwitch from "../components/LanguageSwitch.jsx";
 import ThemeSwitch from "../components/ThemeSwitch.jsx";
 import { formatDuration } from "../format.js";
 import { useApi } from "../hooks.js";
+import { useTheme } from "../theme.jsx";
 import { LoginFirst } from "./Library.jsx";
 import { useT } from "../i18n.jsx";
 
@@ -12,6 +13,7 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const t = useT();
+  const { theme } = useTheme();
   const { data: stats } = useApi(user ? "/me/stats" : null);
 
   if (!user) return <LoginFirst />;
@@ -28,7 +30,7 @@ export default function Profile() {
   return (
     <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-5 md:gap-8 max-w-5xl">
       <section className="flex items-center gap-4 md:gap-6 p-4 md:p-8 rounded-2xl bg-surface-container-high">
-        <div className="w-16 h-16 md:w-24 md:h-24 md:text-[40px] rounded-full bg-primary text-on-primary flex items-center justify-center font-serif text-headline-md font-bold">{user.name[0]}</div>
+        <div className="w-16 h-16 md:w-24 md:h-24 md:text-[40px] rounded-full bg-primary/15 text-primary ring-1 ring-primary/30 flex items-center justify-center font-serif text-headline-md font-bold shrink-0">{user.name[0].toUpperCase()}</div>
         <div className="min-w-0">
           <h1 className="font-serif text-headline-md truncate">{user.name}</h1>
           <p className="text-body-sm text-on-surface-variant truncate">@{user.username} • {user.email}</p>
@@ -51,20 +53,14 @@ export default function Profile() {
 
       <section>
         <h2 className="font-serif text-headline-sm mb-3">{t("Танзимот")}</h2>
-        <div className="grid md:grid-cols-2 gap-2 md:gap-4">
-          <div className="p-4 md:p-5 rounded-xl bg-surface-container flex flex-col gap-3">
-            <span className="flex items-center gap-2 text-label-md text-on-surface-variant">
-              <Icon name="translate" size={20} className="text-secondary" /> {t("Забони сомона")}
-            </span>
-            <LanguageSwitch full />
-            <span className="text-label-sm text-tertiary">{t("Китобҳо бо забони тоҷикӣ мебошанд")}</span>
-          </div>
-          <div className="p-4 md:p-5 rounded-xl bg-surface-container flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2 text-label-md text-on-surface-variant">
-              <Icon name="contrast" size={20} className="text-secondary" /> {t("Мавзӯ")}
-            </span>
+        {/* one card, one row per setting: icon, name, hint, and the switch on the right */}
+        <div className="rounded-2xl bg-surface-container divide-y divide-line/10 md:max-w-2xl">
+          <SettingRow icon="translate" title={t("Забони сомона")} hint={t("Китобҳо бо забони тоҷикӣ мебошанд")}>
+            <LanguageSwitch />
+          </SettingRow>
+          <SettingRow icon={theme === "dark" ? "dark_mode" : "light_mode"} title={t("Мавзӯ")} hint={theme === "dark" ? t("Торик") : t("Равшан")}>
             <ThemeSwitch />
-          </div>
+          </SettingRow>
         </div>
       </section>
 
@@ -84,6 +80,21 @@ export default function Profile() {
       >
         <Icon name="logout" size={20} /> {t("Баромадан")}
       </button>
+    </div>
+  );
+}
+
+function SettingRow({ icon, title, hint, children }) {
+  return (
+    <div className="flex items-center gap-3 p-4">
+      <div className="w-10 h-10 rounded-xl bg-secondary/15 text-secondary flex items-center justify-center shrink-0">
+        <Icon name={icon} size={20} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-label-lg">{title}</p>
+        <p className="text-label-sm text-on-surface-variant truncate">{hint}</p>
+      </div>
+      {children}
     </div>
   );
 }

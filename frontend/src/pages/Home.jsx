@@ -99,8 +99,13 @@ export default function Home() {
               <span className="flex items-center gap-2 text-label-sm uppercase tracking-[0.2em] text-primary">
                 <span className="w-6 h-px bg-primary" /> {t("Китобхонаи савтӣ")}
               </span>
-              <h1 className="font-serif text-headline-lg-mobile md:text-[46px] md:leading-[54px] font-semibold tracking-tight">
-                {t("Салом")}{user ? `, ${user.name}` : ""} <span className="inline-block animate-bounce">👋</span>
+              <h1 className="font-serif font-semibold tracking-tight">
+                <span className="block text-headline-sm md:text-[26px] md:leading-[34px] text-on-surface-variant font-normal">
+                  {user ? `${t("Салом")},` : t("Хуш омадед")}
+                </span>
+                <span className="block text-headline-lg-mobile md:text-[46px] md:leading-[54px] text-primary">
+                  {user ? user.name : t("Шунав")}
+                </span>
               </h1>
               <p className="text-body-sm md:text-body-md text-on-surface-variant max-w-lg">
                 {t("Классикони форсу тоҷик — аз Рӯдакӣ то Айнӣ — бо матни пурра ва овоз.")}

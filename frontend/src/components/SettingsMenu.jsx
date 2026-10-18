@@ -7,7 +7,7 @@ import Icon from "./Icon.jsx";
 import LanguageSwitch from "./LanguageSwitch.jsx";
 import ThemeSwitch from "./ThemeSwitch.jsx";
 
-// The round button on the right of the top bar (the user's first letter, or a person icon for guests).
+// The account button on the right of the top bar: the first letter of the name (a person icon for guests) and an arrow.
 // Click: a menu with the account, language, light/dark theme and links. Guests get the same menu.
 export default function SettingsMenu() {
   const { user, logout } = useAuth();
@@ -44,17 +44,20 @@ export default function SettingsMenu() {
         onClick={() => setOpen(!open)}
         aria-label={t("Танзимот ва ҳисоб")}
         aria-expanded={open}
-        className={`w-9 h-9 rounded-full flex items-center justify-center font-bold ${user ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant hover:text-on-surface"} ${open ? "ring-2 ring-primary/40 ring-offset-2 ring-offset-surface" : ""}`}
+        className={`h-9 pl-1 pr-1.5 rounded-full flex items-center gap-1 bg-surface-container-high hover:bg-surface-bright ${open ? "ring-1 ring-primary/50" : ""}`}
       >
-        {user ? user.name[0] : <Icon name="person" size={20} />}
+        <span className="w-7 h-7 rounded-full bg-primary/15 text-primary ring-1 ring-primary/30 flex items-center justify-center font-serif font-bold text-label-lg">
+          {user ? user.name[0].toUpperCase() : <Icon name="person" size={18} />}
+        </span>
+        <Icon name={open ? "expand_less" : "expand_more"} size={18} className="text-on-surface-variant" />
       </button>
 
       {open && (
         <div className="absolute right-0 top-full mt-3 w-[min(300px,calc(100vw-24px))] rounded-2xl overflow-hidden bg-surface-container-low border border-line/10 shadow-2xl z-[70]">
           {/* who */}
           <div className="p-4 flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold shrink-0 ${user ? "bg-primary text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
-              {user ? user.name[0] : <Icon name="person" size={22} />}
+            <div className="w-11 h-11 rounded-full bg-primary/15 text-primary ring-1 ring-primary/30 flex items-center justify-center font-serif font-bold text-headline-sm shrink-0">
+              {user ? user.name[0].toUpperCase() : <Icon name="person" size={22} />}
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-serif text-headline-sm leading-tight truncate">{user ? user.name : t("Меҳмон")}</p>
