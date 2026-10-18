@@ -9,16 +9,30 @@ import { useApi } from "../hooks.js";
 import { usePlayer } from "../player.jsx";
 import { useT } from "../i18n.jsx";
 
-// "dark" follows the site theme (its name stays for the setting saved in old browsers)
+// Page colours. "dark" follows the site theme (its name stays for the setting saved in old browsers).
+// page = the paper, soft = buttons and boxes on the paper, swatch = the sample in the settings.
 const THEMES = {
-  dark: "bg-surface md:bg-surface-container-low text-on-surface", // on wide screens the page is a bit lighter than the background
-  sepia: "bg-[#f4ecd8] text-[#3b2f1e]",
-  light: "bg-white text-[#1c1f2a]",
+  dark: {
+    name: "Мисли сайт",
+    page: "bg-surface md:bg-surface-container-low text-on-surface", // on wide screens the page is a bit lighter than the background
+    soft: "bg-surface-container hover:bg-surface-container-high text-on-surface",
+    swatch: "bg-surface-container-highest text-on-surface",
+  },
+  sepia: {
+    name: "Сепия",
+    page: "bg-[#f4ecd8] text-[#3b2f1e]",
+    soft: "bg-[#e9dcc0] hover:bg-[#e0d0ae] text-[#3b2f1e]",
+    swatch: "bg-[#f4ecd8] text-[#3b2f1e]",
+  },
+  light: {
+    name: "Сафед",
+    page: "bg-white text-[#1c1f2a]",
+    soft: "bg-[#f1efea] hover:bg-[#e7e4dd] text-[#1c1f2a]",
+    swatch: "bg-white text-[#1c1f2a]",
+  },
 };
 
 // The page's inner space (the turning copy of the page uses the same, so it lies exactly on top)
-const THEME_NAMES = { dark: "Мисли сайт", sepia: "Сепия", light: "Сафед" };
-
 const PAGE_PADDING = "px-5 py-6 md:px-12 md:py-12 lg:px-16";
 
 // About this many letters on one page; a poem or story is never cut in the middle
@@ -151,23 +165,44 @@ export default function Reader() {
   }, [turn, loading]);
 
   // ---------- parts of the screen ----------
+  // text size (small A, the size, big A) and the page colour as three "Аа" samples
   const settings = (
-    <div className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-1 bg-surface-container-high text-on-surface rounded-full p-1">
-        <button onClick={() => changeSize(-2)} className="w-9 h-9 rounded-full hover:bg-surface-bright text-label-md" aria-label={t("Хурдтар")}>A−</button>
-        <span className="text-label-sm text-on-surface-variant w-6 text-center">{size}</span>
-        <button onClick={() => changeSize(2)} className="w-9 h-9 rounded-full hover:bg-surface-bright text-label-lg" aria-label={t("Калонтар")}>A+</button>
+    <div className="flex flex-col gap-5 text-on-surface">
+      <div className="flex flex-col gap-2">
+        <span className="text-label-sm text-on-surface-variant">{t("Андозаи ҳарф")}</span>
+        <div className="flex items-center gap-1 bg-surface-container-high rounded-2xl p-1.5">
+          <button onClick={() => changeSize(-2)} disabled={size <= 14} className="w-10 h-10 rounded-xl hover:bg-surface-bright font-serif text-[14px] disabled:opacity-30" aria-label={t("Хурдтар")}>
+            A
+          </button>
+          <div className="flex-1 flex items-baseline justify-center gap-1.5">
+            <span className="font-serif text-primary leading-none" style={{ fontSize: Math.min(size, 24) }}>Аа</span>
+            <span className="text-label-sm text-on-surface-variant">{size}</span>
+          </div>
+          <button onClick={() => changeSize(2)} disabled={size >= 28} className="w-10 h-10 rounded-xl hover:bg-surface-bright font-serif text-[22px] disabled:opacity-30" aria-label={t("Калонтар")}>
+            A
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-1 bg-surface-container-high rounded-full p-1">
-        {Object.keys(THEMES).map((name) => (
-          <button
-            key={name}
-            onClick={() => changeTheme(name)}
-            aria-label={t(THEME_NAMES[name])}
-            title={t(THEME_NAMES[name])}
-            className={`w-8 h-8 rounded-full border-2 ${theme === name ? "border-primary" : "border-transparent"} ${name === "dark" ? "bg-surface" : name === "sepia" ? "bg-[#f4ecd8]" : "bg-white"}`}
-          />
-        ))}
+      <div className="flex flex-col gap-2">
+        <span className="text-label-sm text-on-surface-variant">{t("Ранги саҳифа")}</span>
+        <div className="grid grid-cols-3 gap-2">
+          {Object.entries(THEMES).map(([name, item]) => (
+            <button
+              key={name}
+              onClick={() => changeTheme(name)}
+              aria-pressed={theme === name}
+              className={`relative flex flex-col items-center gap-1.5 p-1.5 rounded-2xl border-2 ${theme === name ? "border-primary" : "border-line/10 hover:border-line/25"}`}
+            >
+              <span className={`w-full h-11 rounded-xl flex items-center justify-center font-serif text-[18px] shadow-inner ${item.swatch}`}>Аа</span>
+              <span className={`text-label-sm leading-tight text-center ${theme === name ? "text-primary" : "text-on-surface-variant"}`}>{t(item.name)}</span>
+              {theme === name && (
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center">
+                  <Icon name="check" size={14} />
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -191,7 +226,7 @@ export default function Reader() {
       <button
         onClick={previousPage}
         disabled={pageNumber === 1 && !previousChapter}
-        className="flex-1 min-w-0 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-left truncate hover:bg-surface-container-high disabled:opacity-30"
+        className={`flex-1 min-w-0 p-3 rounded-xl text-label-md text-left truncate disabled:opacity-30 ${THEMES[theme].soft}`}
       >
         ← {pageNumber > 1 ? t("Саҳифаи пеш") : previousChapter?.title || ""}
       </button>
@@ -201,7 +236,7 @@ export default function Reader() {
       <button
         onClick={nextPage}
         disabled={pageNumber === pages.length && !nextChapter}
-        className="flex-1 min-w-0 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-right truncate hover:bg-surface-container-high disabled:opacity-30"
+        className={`flex-1 min-w-0 p-3 rounded-xl text-label-md text-right truncate disabled:opacity-30 ${THEMES[theme].soft}`}
       >
         {pageNumber < pages.length ? t("Саҳифаи баъд") : nextChapter?.title || ""} →
       </button>
@@ -241,12 +276,17 @@ export default function Reader() {
         </aside>
 
         {/* Middle: the page */}
-        <article ref={pageRef} className={`${THEMES[theme]} relative min-h-screen lg:min-h-0 md:rounded-3xl md:shadow-2xl ${PAGE_PADDING}`}>
+        <article ref={pageRef} className={`${THEMES[theme].page} relative min-h-screen lg:min-h-0 md:rounded-3xl md:shadow-2xl ${PAGE_PADDING}`}>
           {!chapter ? (
             <Spinner />
           ) : (
             <>
-              <div className="lg:hidden mb-6">{settings}</div>
+              <details className="lg:hidden mb-6 rounded-2xl bg-surface-container-low text-on-surface">
+                <summary className="cursor-pointer p-4 text-label-lg flex items-center gap-2">
+                  <Icon name="text_fields" size={20} className="text-primary" /> {t("Ҳарф ва ранг")}
+                </summary>
+                <div className="px-4 pb-4">{settings}</div>
+              </details>
 
               {pageNumber === 1 ? (
                 <div className="text-center mb-8">
@@ -275,7 +315,7 @@ export default function Reader() {
 
               {/* contents on phones (wide screens have it on the right) */}
               {pageNumber === 1 && sections.length > 3 && (
-                <details className="lg:hidden mb-8 rounded-xl bg-surface-container text-on-surface">
+                <details className={`lg:hidden mb-8 rounded-xl ${THEMES[theme].soft}`}>
                   <summary className="cursor-pointer p-4 text-label-lg flex items-center gap-2">
                     <Icon name="list" size={20} className="text-primary" /> {t("Мундариҷаи боб ({n})", { n: sections.length })}
                   </summary>
@@ -313,8 +353,8 @@ export default function Reader() {
 
         {/* Right: settings and the contents of this chapter */}
         <aside className="hidden lg:flex flex-col gap-4 sticky top-[104px] max-h-[calc(100vh-140px)]">
-          <div className="rounded-2xl bg-surface-container-low p-3">
-            <p className="text-label-sm uppercase tracking-wider text-on-surface-variant mb-3">{t("Ҳарф ва ранг")}</p>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="flex items-center gap-2 text-label-sm uppercase tracking-wider text-on-surface-variant mb-4"><Icon name="text_fields" size={18} className="text-primary" /> {t("Ҳарф ва ранг")}</p>
             {settings}
           </div>
           {sections.length > 1 && (
@@ -333,7 +373,7 @@ export default function Reader() {
         <div className="fixed z-40 pointer-events-none" style={{ ...turn.box, perspective: 2000 }}>
           <div
             key={turn.key}
-            className={`page-flip page-flip-${turn.direction} ${THEMES[theme]} md:rounded-3xl`}
+            className={`page-flip page-flip-${turn.direction} ${THEMES[theme].page} md:rounded-3xl`}
             style={{ animationPlayState: loading ? "paused" : "running" }}
             onAnimationEnd={() => setTurn(null)}
           >
