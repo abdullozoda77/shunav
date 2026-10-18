@@ -33,9 +33,9 @@ MORE_BOOKS = [
     dict(title='Одина', author='ayni', category='Наср',
          description='Қиссаи Садриддин Айнӣ (1924) — саргузашти ҷавони камбағал Одина ва ишқи ӯ ба Гулбибӣ, '
                      'тасвири зиндагии деҳқонони тоҷик дар замони амирӣ.'),
-    dict(title='Ёддоштҳо. Қисми 4', author='ayni', category='Наср',
-         description='Қисми чоруми «Ёддоштҳо»-и Садриддин Айнӣ — хотироти нависанда аз Бухорои охири асри XIX: '
-                     'мадраса, мардум ва урфу одатҳои замон.'),
+    dict(title='Ёддоштҳо', author='ayni', category='Наср',
+         description='«Ёддоштҳо»-и Садриддин Айнӣ (ҳар чор қисм) — хотироти нависанда аз кӯдакӣ дар деҳаи Соктаре '
+                     'то солҳои таҳсил дар мадрасаҳои Бухоро: мардум, урфу одат ва зиндагии охири асри XIX.'),
 ]
 NOTE = '\n\nМатн аз нашри тоҷикии китоб (kitobkhon.net) гирифта шудааст.'
 WRAP = 64  # a prose line this long was cut by the page width; the next line goes on with it
@@ -402,6 +402,80 @@ def read_shohnoma():
     return [(group[0][0], '\n\n\n'.join(section(h, b) for h, b in group)) for group in chapters]
 
 
+def capitals(line):
+    """A heading of a prose book: in CAPITALS ('ҲУСНИ ТАБИӢ', 'ФЕВРАЛ – МАРТИ 1917')."""
+    letters = re.sub(r'[^А-ЯЁӢӮҲҚҒҶа-яёӣӯҳқғҷ]', '', line)
+    return len(line) < 70 and letters.isupper() and len(letters) > 3
+
+
+def read_prose(name, first_page, first_part=None):
+    """A prose book: 'ҚИСМИ ...' starts a part, other CAPITAL lines start a section. Lines cut by the page width are
+    joined (and words cut with '-'); a paragraph ends at a short line that ends a sentence. Notes at the foot of a
+    page ('1 Роиҷа – ...') and note numbers in words are left out; the book ends at its contents. About 25 000
+    letters of sections make a chapter, named after its first section."""
+    book_pages = pages(name)
+    widths = sorted(len(l) for ls in book_pages.values() for l in ls if l)
+    full = widths[int(len(widths) * 0.9)] * 0.85  # a line shorter than this ends a paragraph
+
+    parts, part, sections, heading, paragraphs = [], first_part, [], None, []
+
+    def close_section():
+        if heading is not None and paragraphs:
+            sections.append((heading, paragraphs[:]))
+
+    for number in sorted(book_pages):
+        if number < first_page:
+            continue
+        page = book_pages[number]
+        if any(line.replace(' ', '') in ('МУНДАРИҶА', 'МУНДРИҶА') for line in page):
+            break  # the contents: the end of the book
+        for k, line in enumerate(page):
+            if k > len(page) / 2 and re.match(r'^\d\s*[.)]?\s+\S', line):
+                break  # notes to the end of the page
+            line = re.sub(r'(?<=[^\d\s])\d+(?=[\s.,!?;:»…]|$)', '', line).strip()
+            if not line:
+                continue
+            if re.match(r'^ҚИСМИ ', line):
+                close_section()
+                if sections:
+                    parts.append((part, sections))
+                part, sections, heading, paragraphs = line.capitalize(), [], None, []
+            elif capitals(line):
+                if heading is not None and not paragraphs:  # a heading on two lines
+                    heading = f'{heading} {line.lower()}'
+                    continue
+                close_section()
+                heading, paragraphs = line.capitalize(), []
+            else:
+                if heading is None:
+                    heading = part or 'Оғоз'
+                if paragraphs and paragraphs[-1][1]:  # the last paragraph goes on
+                    text = paragraphs[-1][0]
+                    text = text[:-1] + line if text.endswith('-') and line[:1].islower() else f'{text} {line}'
+                    paragraphs[-1] = (text, True)
+                else:
+                    paragraphs.append((line, True))
+                if len(line) < full and line.endswith(('.', '!', '?', '»', ':', '…')):  # a short line ends it
+                    paragraphs[-1] = (paragraphs[-1][0], False)
+    close_section()
+    if sections:
+        parts.append((part, sections))
+
+    chapters = []
+    for part_title, part_sections in parts:
+        group, size = [], 0
+        for heading, paras in part_sections:
+            group.append((heading, '\n\n'.join(text for text, _ in paras)))
+            size += sum(len(text) for text, _ in paras)
+            if size > 25000:
+                chapters.append((part_title, group))
+                group, size = [], 0
+        if group:
+            chapters.append((part_title, group))
+    return [(f'{part_title}: {group[0][0]}' if part_title else group[0][0],
+             '\n\n\n'.join(f'◆ {h}\n\n{t}' for h, t in group)) for part_title, group in chapters]
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
@@ -409,6 +483,8 @@ READERS = {
     'ruboiyot': ('Рубоиёт', read_ruboiyot),
     'rudaki': ('Ашъор', read_rudaki),
     'shohnoma': ('Шоҳнома. Ҷилди 1', read_shohnoma),
+    'odina': ('Одина', lambda: read_prose('odina', 3)),
+    'yoddoshtho4': ('Ёддоштҳо', lambda: read_prose('yoddoshtho4', 3, 'Қисми якум')),
     **{f'masnavi{n}': (f'Маснавии маънавӣ. Дафтари {word}', lambda n=n: read_masnavi(f'masnavi{n}'))
        for n, word in [(2, 'дуюм'), (3, 'сеюм'), (4, 'чаҳорум'), (5, 'панҷум'), (6, 'шашум')]},
 }
