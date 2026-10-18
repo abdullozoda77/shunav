@@ -53,13 +53,13 @@ PHOTO_COVERS = {
     'Шоҳнома (достонҳои интихобӣ)': 'shohnoma.jpg',
     'Маснавии маънавӣ. Дафтари аввал': 'masnavi.jpg',
     'Рубоиёт': 'rubaiyat.jpg',
-    'Девони ғазалиёт': 'hafez.jpg',
 }
 
 # title -> (portrait in cover-photos/, title text, author text): a picture that is not a book cover is put on one
 PORTRAIT_COVERS = {
     'Ашъор': ('rudaki.jpg', 'АШЪОР', 'Абӯабдуллоҳи Рӯдакӣ'),
     'Бӯи Ҷӯи Мӯлиён': ('rudaki.jpg', 'БӮИ ҶӮИ МӮЛИЁН', 'Абӯабдуллоҳи Рӯдакӣ'),
+    'Девони ғазалиёт': ('hafez-portrait.jpg', 'ДЕВОНИ ҒАЗАЛИЁТ', 'Ҳофизи Шерозӣ'),
 }
 
 INKS = {
