@@ -45,8 +45,6 @@ MAX_WIDTH = 600
 TAJIK_COVERS = {
     'Гулистон': ('golestan.jpg', (0.065, 0.05, 0.94, 0.955), (0.335, 0.633, 0.681, 0.733), 'dark', 'ГУЛИСТОН', 'Саъдии Шерозӣ'),
     'Бӯстон': ('boostan.jpg', (0.08, 0.07, 0.92, 0.95), (0.29, 0.54, 0.76, 0.79), 'gold', 'БӮСТОН', 'Саъдии Шерозӣ'),
-    'Ғазалиёти Бедил': ('golestan.jpg', (0.065, 0.05, 0.94, 0.955), (0.335, 0.633, 0.681, 0.733), 'dark', 'ҒАЗАЛИЁТ', 'Мирзо Абдулқодири Бедил'),
-    'Рубоиёти Бедил': ('boostan.jpg', (0.08, 0.07, 0.92, 0.95), (0.29, 0.54, 0.76, 0.79), 'gold', 'РУБОИЁТ', 'Мирзо Абдулқодири Бедил'),
 }
 
 # title -> photo in cover-photos/ (sent by the project owner)
@@ -54,6 +52,17 @@ PHOTO_COVERS = {
     'Шоҳнома': 'shohnoma.jpg',
     'Шоҳнома (достонҳои интихобӣ)': 'shohnoma.jpg',
     'Шоҳнома. Ҷилди 1': 'shohnoma.jpg',
+    # first pages of the books' PDFs (kitobkhon.net)
+    'Маснавии маънавӣ. Дафтари дуюм': 'masnavi-2.jpg',
+    'Маснавии маънавӣ. Дафтари сеюм': 'masnavi-3.jpg',
+    'Маснавии маънавӣ. Дафтари чаҳорум': 'masnavi-4.jpg',
+    'Маснавии маънавӣ. Дафтари панҷум': 'masnavi-5.jpg',
+    'Маснавии маънавӣ. Дафтари шашум': 'masnavi-6.jpg',
+    'Ёддоштҳо': 'yoddoshtho.jpg',
+    'Марги судхӯр': 'margi-sudkhur.jpg',
+    'Мактаби кӯҳна': 'maktabi-kuhna.jpg',
+    'Саду як ғазал': 'bedil-sadu-yak-ghazal.jpg',
+    'Рубоиёти Бедил': 'bedil-ruboiyot.jpg',
     'Маснавии маънавӣ. Дафтари аввал': 'masnavi.jpg',
     'Рубоиёт': 'rubaiyat.jpg',
 }
@@ -63,12 +72,7 @@ PORTRAIT_COVERS = {
     'Ашъор': ('rudaki.jpg', 'АШЪОР', 'Абӯабдуллоҳи Рӯдакӣ'),
     'Бӯи Ҷӯи Мӯлиён': ('rudaki.jpg', 'БӮИ ҶӮИ МӮЛИЁН', 'Абӯабдуллоҳи Рӯдакӣ'),
     'Девони ғазалиёт': ('hafez-portrait.jpg', 'ДЕВОНИ ҒАЗАЛИЁТ', 'Ҳофизи Шерозӣ'),
-    **{f'Маснавии маънавӣ. Дафтари {n}': ('rumi.jpg', f'МАСНАВӢ · ДАФТАРИ {n.upper()}', 'Ҷалолиддини Балхӣ (Румӣ)')
-       for n in ('дуюм', 'сеюм', 'чаҳорум', 'панҷум', 'шашум')},
     'Одина': ('ayni.jpg', 'ОДИНА', 'Садриддин Айнӣ'),
-    'Ёддоштҳо': ('ayni.jpg', 'ЁДДОШТҲО', 'Садриддин Айнӣ'),
-    'Марги судхӯр': ('ayni.jpg', 'МАРГИ СУДХӮР', 'Садриддин Айнӣ'),
-    'Мактаби кӯҳна': ('ayni.jpg', 'МАКТАБИ КӮҲНА', 'Садриддин Айнӣ'),
 }
 
 INKS = {
@@ -169,7 +173,7 @@ def make_tajik_cover(art, crop, panel, lettering, title, author):
     if image.width > MAX_WIDTH:
         image = image.resize((MAX_WIDTH, round(image.height * MAX_WIDTH / image.width)), Image.LANCZOS)
 
-    name = f'tajik-{art.rsplit(".", 1)[0]}.jpg' if title in ('ГУЛИСТОН', 'БӮСТОН') else f'tajik-{title.lower().replace(" ", "-")}.jpg'
+    name = f'tajik-{art.rsplit(".", 1)[0]}.jpg'
     image.save(f'{COVERS_DIR}/{name}', quality=88, optimize=True)
     return f'/{COVERS_DIR}/{name}'
 
