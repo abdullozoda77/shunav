@@ -68,7 +68,7 @@ export default function AuthorCarousel({ authors }) {
         {author.bio && <p className="text-body-sm text-on-surface-variant mt-2 line-clamp-2">{t(author.bio)}</p>}
         <Link
           to={`/search?author_id=${author.id}`}
-          className="inline-flex items-center gap-1 mt-3 text-label-md text-secondary hover:underline"
+          className="inline-flex items-center gap-1 mt-3 text-label-md text-secondary hover:opacity-75 transition-opacity"
         >
           {author.books_count ? t("{n} китоб", { n: author.books_count }) : t("Китобҳо ба наздикӣ")}
           <Icon name="chevron_right" size={16} />

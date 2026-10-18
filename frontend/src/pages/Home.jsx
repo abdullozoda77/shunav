@@ -393,7 +393,7 @@ function SectionTitle({ title, icon, iconColor = "text-primary", dot, link, link
         <h2 className="font-serif text-headline-sm md:text-headline-md">{title}</h2>
       </div>
       {link && (
-        <Link to={link} className="text-label-sm md:text-label-md text-primary hover:underline flex items-center">
+        <Link to={link} className="text-label-sm md:text-label-md text-primary hover:opacity-75 transition-opacity flex items-center">
           {linkText} <Icon name="chevron_right" size={16} />
         </Link>
       )}

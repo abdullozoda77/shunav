@@ -122,7 +122,7 @@ export default function Book() {
             <Cover book={book} className="relative w-44 aspect-[3/4.4] rounded-xl shadow-[0_16px_36px_rgba(0,0,0,0.65)] my-2" />
 
             <h2 className="font-serif text-headline-lg-mobile font-bold mt-4">«{book.title}»</h2>
-            <Link to={`/search?author_id=${book.author.id}`} className="text-label-lg text-primary mt-1 hover:underline">
+            <Link to={`/search?author_id=${book.author.id}`} className="text-label-lg text-primary mt-1 hover:opacity-75 transition-opacity">
               {t(book.author.name)}
               {book.author.birth_year && (
                 <span className="text-on-surface-variant text-label-md">
@@ -364,14 +364,14 @@ export default function Book() {
                 href={book.source_url}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 text-on-surface-variant text-label-sm hover:underline"
+                className="flex items-center gap-1.5 text-on-surface-variant text-label-sm hover:text-primary transition-colors"
               >
                 <Icon name="policy" size={16} /> {t("Манбаи матн")}
               </a>
             )}
             <button
               onClick={() => setModal("report")}
-              className="mt-2 text-on-surface-variant/70 hover:text-error text-label-sm underline underline-offset-4 decoration-outline-variant"
+              className="mt-2 flex items-center gap-1.5 text-on-surface-variant/70 hover:text-error text-label-sm transition-colors"
             >
               {t("Шикоят аз ҳуқуқи муаллиф")}
             </button>

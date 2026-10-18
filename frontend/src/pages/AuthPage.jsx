@@ -118,7 +118,7 @@ export default function AuthPage({ mode }) {
 
           <p className="text-center text-body-sm text-on-surface-variant mt-2">
             {t(isRegister ? "Аллакай ҳисоб доред? " : "Ҳисоб надоред? ")}
-            <Link to={isRegister ? "/login" : "/register"} className="text-secondary hover:underline">
+            <Link to={isRegister ? "/login" : "/register"} className="text-secondary hover:opacity-75 transition-opacity">
               {t(isRegister ? "Ворид шавед" : "Сабти ном кунед")}
             </Link>
           </p>
