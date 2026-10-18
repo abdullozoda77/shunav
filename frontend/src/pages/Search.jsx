@@ -5,8 +5,9 @@ import Icon from "../components/Icon.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { formatDuration } from "../format.js";
 import { useApi } from "../hooks.js";
+import { useT } from "../i18n.jsx";
 
-// what the user picks -> sort_by + order for the API
+// what the user picks -> sort_by + order for the API (labels are translated where shown)
 const SORTS = {
   newest: { label: "Навтарин", sort_by: "id", order: "desc" },
   rating: { label: "Беҳтарин", sort_by: "rating", order: "desc" },
@@ -17,14 +18,8 @@ const SORTS = {
 
 const PAGE_SIZE = 24;
 
-const LANGUAGES = [
-  { code: "", name: "Ҳама забонҳо" },
-  { code: "tg", name: "Тоҷикӣ" },
-  { code: "ru", name: "Русский" },
-  { code: "en", name: "English" },
-];
-
 export default function Search() {
+  const t = useT();
   // filters live in the address (?q=...&category_id=...), so a search can be shared or reloaded
   const [params, setParams] = useSearchParams();
   const [text, setText] = useState(params.get("q") || "");
@@ -37,7 +32,7 @@ export default function Search() {
 
   const query = new URLSearchParams({ sort_by: sort.sort_by, order: sort.order, page, page_size: PAGE_SIZE });
   if (params.get("q")) query.set("search", params.get("q"));
-  for (const key of ["category_id", "author_id", "language", "min_rating"]) {
+  for (const key of ["category_id", "author_id", "min_rating"]) {
     if (params.get(key)) query.set(key, params.get(key));
   }
   const { data: books, loading } = useApi(`/books?${query}`);
@@ -54,7 +49,7 @@ export default function Search() {
 
   return (
     <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-4 md:gap-6">
-      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">Ҷустуҷӯ</h1>
+      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">{t("Ҷустуҷӯ")}</h1>
 
       <form
         onSubmit={(event) => {
@@ -64,9 +59,9 @@ export default function Search() {
         className="flex items-center h-12 md:h-14 max-w-3xl bg-surface-container-high rounded-xl px-3.5 gap-3 focus-within:bg-surface-container-highest"
       >
         <Icon name="search" size={22} className="text-primary" />
-        <input value={text} onChange={(e) => setText(e.target.value)} className="w-full bg-transparent outline-none text-body-sm placeholder:text-outline" placeholder="Номи асар ё шоир..." autoFocus />
+        <input value={text} onChange={(e) => setText(e.target.value)} className="w-full bg-transparent outline-none text-body-sm placeholder:text-outline" placeholder={t("Номи асар ё шоир...")} autoFocus />
         {text && (
-          <button type="button" onClick={() => { setText(""); setFilter("q", ""); }} aria-label="Тоза кардан">
+          <button type="button" onClick={() => { setText(""); setFilter("q", ""); }} aria-label={t("Тоза кардан")}>
             <Icon name="close" size={18} className="text-outline" />
           </button>
         )}
@@ -74,24 +69,21 @@ export default function Search() {
 
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 md:mx-0 md:px-0 md:flex-wrap">
         <select className={select} value={params.get("category_id") || ""} onChange={(e) => setFilter("category_id", e.target.value)}>
-          <option value="">Ҳама жанрҳо</option>
-          {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <option value="">{t("Ҳама жанрҳо")}</option>
+          {categories?.map((c) => <option key={c.id} value={c.id}>{t(c.name)}</option>)}
         </select>
         <select className={select} value={params.get("author_id") || ""} onChange={(e) => setFilter("author_id", e.target.value)}>
-          <option value="">Ҳама муаллифон</option>
-          {authors?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
-        <select className={select} value={params.get("language") || ""} onChange={(e) => setFilter("language", e.target.value)}>
-          {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
+          <option value="">{t("Ҳама муаллифон")}</option>
+          {authors?.map((a) => <option key={a.id} value={a.id}>{t(a.name)}</option>)}
         </select>
         <select className={select} value={params.get("min_rating") || ""} onChange={(e) => setFilter("min_rating", e.target.value)}>
-          <option value="">Ҳама баҳоҳо</option>
-          <option value="4">★ 4 ва болотар</option>
-          <option value="4.5">★ 4.5 ва болотар</option>
+          <option value="">{t("Ҳама баҳоҳо")}</option>
+          <option value="4">{t("★ 4 ва болотар")}</option>
+          <option value="4.5">{t("★ 4.5 ва болотар")}</option>
         </select>
         <select className={select} value={params.get("sort") || "newest"} onChange={(e) => setFilter("sort", e.target.value)}>
           {Object.entries(SORTS).map(([key, item]) => (
-            <option key={key} value={key}>{item.label}</option>
+            <option key={key} value={key}>{t(item.label)}</option>
           ))}
         </select>
       </div>
@@ -105,7 +97,7 @@ export default function Search() {
               <Cover book={book} className="w-full aspect-[3/4] rounded-xl shadow-md group-hover:scale-[1.02] transition-transform" />
               <div className="min-w-0">
                 <h4 className="font-serif text-label-lg truncate group-hover:text-primary">{book.title}</h4>
-                <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+                <p className="text-label-sm text-on-surface-variant truncate">{t(book.author.name)}</p>
                 {book.total_duration > 0 && <p className="text-[11px] text-tertiary">{formatDuration(book.total_duration)}</p>}
               </div>
             </Link>
@@ -114,7 +106,7 @@ export default function Search() {
       ) : (
         <div className="text-center py-16 text-on-surface-variant">
           <Icon name="search_off" size={40} />
-          <p className="mt-2">Ҳеҷ чиз ёфт нашуд</p>
+          <p className="mt-2">{t("Ҳеҷ чиз ёфт нашуд")}</p>
         </div>
       )}
 
@@ -122,11 +114,11 @@ export default function Search() {
       {(page > 1 || books?.length === PAGE_SIZE) && (
         <div className="flex items-center justify-center gap-3 mt-4">
           <button disabled={page === 1} onClick={() => setFilter("page", page - 1)} className="h-10 px-4 rounded-xl bg-surface-container-high disabled:opacity-40">
-            ← Пеш
+            {t("← Пеш")}
           </button>
-          <span className="text-label-md text-on-surface-variant">Саҳифаи {page}</span>
+          <span className="text-label-md text-on-surface-variant">{t("Саҳифаи {n}", { n: page })}</span>
           <button disabled={books?.length < PAGE_SIZE} onClick={() => setFilter("page", page + 1)} className="h-10 px-4 rounded-xl bg-surface-container-high disabled:opacity-40">
-            Баъд →
+            {t("Баъд →")}
           </button>
         </div>
       )}

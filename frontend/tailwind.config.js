@@ -3,34 +3,17 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
-      colors: {
-        background: "#0f131d",
-        surface: "#0f131d",
-        "surface-bright": "#353944",
-        "surface-container-lowest": "#0a0e18",
-        "surface-container-low": "#171b26",
-        "surface-container": "#1c1f2a",
-        "surface-container-high": "#262a35",
-        "surface-container-highest": "#313540",
-        "surface-variant": "#313540",
-        primary: "#ffc041",
-        "primary-container": "#e0a526",
-        "primary-fixed": "#ffdea8",
-        "primary-fixed-dim": "#fabc3e",
-        "on-primary": "#422d00",
-        "on-primary-container": "#583e00",
-        secondary: "#4fdbc8",
-        "secondary-container": "#04b4a2",
-        "secondary-fixed": "#71f8e4",
-        "secondary-fixed-dim": "#4fdbc8",
-        tertiary: "#d1cab9",
-        "tertiary-fixed": "#e9e2d0",
-        "on-surface": "#dfe2f1",
-        "on-surface-variant": "#d4c4ae",
-        outline: "#9c8f7b",
-        "outline-variant": "#504534",
-        error: "#ffb4ab",
-      },
+      // Every colour is a CSS variable (index.css), so the dark and light themes only swap the variables.
+      // "line" = thin borders (white in the dark theme, brown in the light one).
+      colors: Object.fromEntries(
+        [
+          "surface", "surface-bright", "surface-container-lowest", "surface-container-low", "surface-container",
+          "surface-container-high", "surface-container-highest", "surface-variant",
+          "primary", "primary-container", "primary-fixed", "primary-fixed-dim", "on-primary", "on-primary-container",
+          "secondary", "secondary-container", "secondary-fixed", "secondary-fixed-dim", "tertiary", "tertiary-fixed",
+          "on-surface", "on-surface-variant", "outline", "outline-variant", "error", "line",
+        ].map((name) => [name, `rgb(var(--c-${name}) / <alpha-value>)`])
+      ),
       // Both fonts have the full Cyrillic alphabet with the Tajik letters (ӣ ӯ ҷ ҳ қ ғ)
       fontFamily: {
         serif: ["Philosopher", "PT Serif", "Georgia", "serif"], // PT Serif only fills in Ҳ ҳ, which Philosopher lacks

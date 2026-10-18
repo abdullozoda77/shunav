@@ -7,7 +7,9 @@ import MiniPlayer from "../components/MiniPlayer.jsx";
 import Spinner from "../components/Spinner.jsx";
 import { useApi } from "../hooks.js";
 import { usePlayer } from "../player.jsx";
+import { useT } from "../i18n.jsx";
 
+// "dark" follows the site theme (its name stays for the setting saved in old browsers)
 const THEMES = {
   dark: "bg-surface md:bg-surface-container-low text-on-surface", // on wide screens the page is a bit lighter than the background
   sepia: "bg-[#f4ecd8] text-[#3b2f1e]",
@@ -15,6 +17,8 @@ const THEMES = {
 };
 
 // The page's inner space (the turning copy of the page uses the same, so it lies exactly on top)
+const THEME_NAMES = { dark: "Мисли сайт", sepia: "Сепия", light: "Сафед" };
+
 const PAGE_PADDING = "px-5 py-6 md:px-12 md:py-12 lg:px-16";
 
 // About this many letters on one page; a poem or story is never cut in the middle
@@ -41,6 +45,7 @@ export default function Reader() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const player = usePlayer();
+  const t = useT();
   const { data: chapter, loading } = useApi(`/chapters/${chapterId}`);
   const { data: book } = useApi(chapter ? `/books/${chapter.book_id}` : null);
 
@@ -149,16 +154,17 @@ export default function Reader() {
   const settings = (
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1 bg-surface-container-high text-on-surface rounded-full p-1">
-        <button onClick={() => changeSize(-2)} className="w-9 h-9 rounded-full hover:bg-surface-bright text-label-md" aria-label="Хурдтар">A−</button>
+        <button onClick={() => changeSize(-2)} className="w-9 h-9 rounded-full hover:bg-surface-bright text-label-md" aria-label={t("Хурдтар")}>A−</button>
         <span className="text-label-sm text-on-surface-variant w-6 text-center">{size}</span>
-        <button onClick={() => changeSize(2)} className="w-9 h-9 rounded-full hover:bg-surface-bright text-label-lg" aria-label="Калонтар">A+</button>
+        <button onClick={() => changeSize(2)} className="w-9 h-9 rounded-full hover:bg-surface-bright text-label-lg" aria-label={t("Калонтар")}>A+</button>
       </div>
       <div className="flex items-center gap-1 bg-surface-container-high rounded-full p-1">
         {Object.keys(THEMES).map((name) => (
           <button
             key={name}
             onClick={() => changeTheme(name)}
-            aria-label={name}
+            aria-label={t(THEME_NAMES[name])}
+            title={t(THEME_NAMES[name])}
             className={`w-8 h-8 rounded-full border-2 ${theme === name ? "border-primary" : "border-transparent"} ${name === "dark" ? "bg-surface" : name === "sepia" ? "bg-[#f4ecd8]" : "bg-white"}`}
           />
         ))}
@@ -174,7 +180,7 @@ export default function Reader() {
         onClick={() => goToPage(pageIndex + 1, part)}
         className={`flex justify-between gap-2 w-full text-left text-body-sm truncate py-1 hover:text-primary ${pageIndex + 1 === pageNumber ? "text-on-surface" : "text-on-surface-variant"}`}
       >
-        <span className="truncate">{section.heading || "Аввал"}</span>
+        <span className="truncate">{section.heading || t("Аввал")}</span>
         <span className="text-outline shrink-0">{pageIndex + 1}</span>
       </button>
     ))
@@ -187,7 +193,7 @@ export default function Reader() {
         disabled={pageNumber === 1 && !previousChapter}
         className="flex-1 min-w-0 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-left truncate hover:bg-surface-container-high disabled:opacity-30"
       >
-        ← {pageNumber > 1 ? "Саҳифаи пеш" : previousChapter?.title || ""}
+        ← {pageNumber > 1 ? t("Саҳифаи пеш") : previousChapter?.title || ""}
       </button>
       <span className="shrink-0 px-2 text-label-md opacity-70">
         {pageNumber} / {pages.length}
@@ -197,14 +203,14 @@ export default function Reader() {
         disabled={pageNumber === pages.length && !nextChapter}
         className="flex-1 min-w-0 p-3 rounded-xl bg-surface-container text-on-surface text-label-md text-right truncate hover:bg-surface-container-high disabled:opacity-30"
       >
-        {pageNumber < pages.length ? "Саҳифаи баъд" : nextChapter?.title || ""} →
+        {pageNumber < pages.length ? t("Саҳифаи баъд") : nextChapter?.title || ""} →
       </button>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-surface">
-      <Header title={book?.title || "Хондан"} />
+      <Header title={book?.title || t("Хондан")} />
 
       {/* Wide screens: book + chapters | the page | settings + contents. Phones: only the page. */}
       <main className="pt-16 md:pt-[104px] pb-36 max-w-7xl mx-auto md:px-8 lg:grid lg:grid-cols-[260px_minmax(0,1fr)_230px] lg:gap-8 lg:items-start">
@@ -215,12 +221,12 @@ export default function Reader() {
               <Cover book={book} showTitle={false} className="w-14 h-20 rounded-lg shrink-0" />
               <div className="min-w-0">
                 <p className="font-serif text-label-lg truncate">{book.title}</p>
-                <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+                <p className="text-label-sm text-on-surface-variant truncate">{t(book.author.name)}</p>
               </div>
             </Link>
           )}
           <div className="rounded-2xl bg-surface-container-low p-2 overflow-y-auto">
-            <p className="px-3 py-2 text-label-sm uppercase tracking-wider text-on-surface-variant">Бобҳо</p>
+            <p className="px-3 py-2 text-label-sm uppercase tracking-wider text-on-surface-variant">{t("Бобҳо")}</p>
             {book?.chapters.map((item) => (
               <button
                 key={item.id}
@@ -244,15 +250,15 @@ export default function Reader() {
 
               {pageNumber === 1 ? (
                 <div className="text-center mb-8">
-                  <p className="text-label-sm uppercase tracking-[0.2em] text-primary-container">Боби {chapter.order}</p>
+                  <p className="text-label-sm uppercase tracking-[0.2em] text-primary-container">{t("Боби {n}", { n: chapter.order })}</p>
                   <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px] font-semibold mt-2">{chapter.title}</h1>
-                  {book && <p className="font-serif text-body-sm opacity-60 mt-2">{book.title} — {book.author.name}</p>}
+                  {book && <p className="font-serif text-body-sm opacity-60 mt-2">{book.title} — {t(book.author.name)}</p>}
                   <div className="mx-auto mt-5 w-24 h-px bg-primary-container/50" />
                 </div>
               ) : (
                 // later pages: just a small line on top
                 <p className="text-center text-label-sm uppercase tracking-[0.2em] text-primary-container mb-8">
-                  Боби {chapter.order} · {chapter.title} · саҳифаи {pageNumber}
+                  {t("Боби {n}", { n: chapter.order })} · {chapter.title} · {t("саҳифаи {n}", { n: pageNumber })}
                 </p>
               )}
 
@@ -262,7 +268,7 @@ export default function Reader() {
                     onClick={() => player.playChapter(book, book.chapters.find((c) => c.id === chapter.id), 0)}
                     className="h-10 px-5 rounded-full bg-primary text-on-primary text-label-md flex items-center gap-2"
                   >
-                    <Icon name="headphones" size={18} /> {player.chapter?.id === chapter.id ? "Дар ҳоли пахш" : "Гӯш кардани ин боб"}
+                    <Icon name="headphones" size={18} /> {t(player.chapter?.id === chapter.id ? "Дар ҳоли пахш" : "Гӯш кардани ин боб")}
                   </button>
                 </div>
               )}
@@ -271,13 +277,13 @@ export default function Reader() {
               {pageNumber === 1 && sections.length > 3 && (
                 <details className="lg:hidden mb-8 rounded-xl bg-surface-container text-on-surface">
                   <summary className="cursor-pointer p-4 text-label-lg flex items-center gap-2">
-                    <Icon name="list" size={20} className="text-primary" /> Мундариҷаи боб ({sections.length})
+                    <Icon name="list" size={20} className="text-primary" /> {t("Мундариҷаи боб ({n})", { n: sections.length })}
                   </summary>
                   <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-x-4 max-h-72 overflow-y-auto">{contentsLinks}</div>
                 </details>
               )}
 
-              {sections.length === 0 && <p className="font-serif opacity-70 text-center">Матни ин боб ҳоло илова нашудааст.</p>}
+              {sections.length === 0 && <p className="font-serif opacity-70 text-center">{t("Матни ин боб ҳоло илова нашудааст.")}</p>}
 
               {pageSections.map(({ section, index: part }) => (
                 <section key={part} id={`part-${part}`} className="mb-10 scroll-mt-28">
@@ -308,13 +314,13 @@ export default function Reader() {
         {/* Right: settings and the contents of this chapter */}
         <aside className="hidden lg:flex flex-col gap-4 sticky top-[104px] max-h-[calc(100vh-140px)]">
           <div className="rounded-2xl bg-surface-container-low p-3">
-            <p className="text-label-sm uppercase tracking-wider text-on-surface-variant mb-3">Ҳарф ва ранг</p>
+            <p className="text-label-sm uppercase tracking-wider text-on-surface-variant mb-3">{t("Ҳарф ва ранг")}</p>
             {settings}
           </div>
           {sections.length > 1 && (
             <div className="rounded-2xl bg-surface-container-low p-3 overflow-y-auto">
               <p className="text-label-sm uppercase tracking-wider text-on-surface-variant mb-2">
-                Мундариҷаи боб ({sections.length}) · {pages.length} саҳифа
+                {t("Мундариҷаи боб ({n})", { n: sections.length })} · {t("{n} саҳифа", { n: pages.length })}
               </p>
               {contentsLinks}
             </div>

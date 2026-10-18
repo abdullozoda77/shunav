@@ -50,7 +50,7 @@ export default function Cover({ book, className = "", showTitle = true, frame = 
           <p className="font-bold text-[13px]" style={{ color: accent }}>
             {book?.title}
           </p>
-          <p className="text-[9px] text-tertiary-fixed opacity-80">{book?.author?.name}</p>
+          <p className="text-[9px] text-[#e9e2d0] opacity-80">{book?.author?.name}</p>
         </div>
       )}
     </div>

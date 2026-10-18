@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n.jsx";
 
 // Each genre: an emblem, its own colour and one line about what it is
 const GENRES = {
@@ -23,6 +24,7 @@ function OpenBook({ className }) {
 
 export default function GenreCard({ genre }) {
   const style = GENRES[genre.name] || OTHER;
+  const t = useT();
 
   return (
     <Link
@@ -38,9 +40,9 @@ export default function GenreCard({ genre }) {
       </div>
 
       <div className="relative">
-        <p className="font-serif text-headline-sm leading-tight text-white">{genre.name}</p>
-        <p className="text-label-sm text-white/70 line-clamp-1">{style.text}</p>
-        <p className="text-label-sm text-primary-fixed mt-1">{genre.books} китоб</p>
+        <p className="font-serif text-headline-sm leading-tight text-white">{t(genre.name)}</p>
+        <p className="text-label-sm text-white/70 line-clamp-1">{t(style.text)}</p>
+        <p className="text-label-sm text-primary-fixed mt-1">{t("{n} китоб", { n: genre.books })}</p>
       </div>
     </Link>
   );

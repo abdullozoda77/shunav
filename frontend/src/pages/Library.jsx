@@ -9,7 +9,9 @@ import Spinner from "../components/Spinner.jsx";
 import { formatClock, percent } from "../format.js";
 import { useApi } from "../hooks.js";
 import { usePlayer } from "../player.jsx";
+import { useT } from "../i18n.jsx";
 
+// labels are translated where shown
 const TABS = [
   { key: "continue", label: "Идома" },
   { key: "favorites", label: "Дилхоҳ" },
@@ -17,6 +19,7 @@ const TABS = [
 ];
 
 export default function Library() {
+  const t = useT();
   const { user } = useAuth();
   const [tab, setTab] = useState("continue");
 
@@ -24,7 +27,7 @@ export default function Library() {
 
   return (
     <div className="px-4 md:px-8 pt-3 md:pt-8 pb-8 flex flex-col gap-4 md:gap-6">
-      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">Китобхонаи ман</h1>
+      <h1 className="font-serif text-headline-lg-mobile md:text-[36px] md:leading-[44px]">{t("Китобхонаи ман")}</h1>
       <div className="flex bg-surface-container-high rounded-xl p-1 md:max-w-md">
         {TABS.map((item) => (
           <button
@@ -32,7 +35,7 @@ export default function Library() {
             onClick={() => setTab(item.key)}
             className={`flex-1 h-10 rounded-lg text-label-md ${tab === item.key ? "bg-primary text-on-primary font-bold" : "text-on-surface-variant"}`}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
@@ -46,10 +49,11 @@ export default function Library() {
 }
 
 function ContinueTab() {
+  const t = useT();
   const player = usePlayer();
   const { data, loading } = useApi("/me/continue");
   if (loading) return <Spinner />;
-  if (!data?.length) return <Empty icon="headphones" text="Шумо ҳоло ягон китоб гӯш накардаед." />;
+  if (!data?.length) return <Empty icon="headphones" text={t("Шумо ҳоло ягон китоб гӯш накардаед.")} />;
 
   return data.map(({ book, chapter, position_seconds }) => (
     <div key={book.id} className="group flex items-center gap-3 p-3 rounded-xl bg-surface-container">
@@ -64,7 +68,7 @@ function ContinueTab() {
       <button
         onClick={() => player.playById(book.id, chapter.id, position_seconds)}
         className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center"
-        aria-label="Идома додан"
+        aria-label={t("Идома додан")}
       >
         <Icon name="play_arrow" filled size={20} />
       </button>
@@ -73,9 +77,10 @@ function ContinueTab() {
 }
 
 function FavoritesTab() {
+  const t = useT();
   const { data, loading } = useApi("/me/favorites");
   if (loading) return <Spinner />;
-  if (!data?.length) return <Empty icon="favorite" text="Китобҳои дилхоҳро бо ♥ илова кунед." />;
+  if (!data?.length) return <Empty icon="favorite" text={t("Китобҳои дилхоҳро бо ♥ илова кунед.")} />;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
@@ -90,10 +95,11 @@ function FavoritesTab() {
 }
 
 function BookmarksTab() {
+  const t = useT();
   const player = usePlayer();
   const { data, loading, reload } = useApi("/me/bookmarks");
   if (loading) return <Spinner />;
-  if (!data?.length) return <Empty icon="bookmark" text="Дар плеер «Хатчӯб»-ро пахш кунед, то ҷойро нигоҳ доред." />;
+  if (!data?.length) return <Empty icon="bookmark" text={t("Дар плеер «Хатчӯб»-ро пахш кунед, то ҷойро нигоҳ доред.")} />;
 
   async function remove(id) {
     await api.delete(`/me/bookmarks/${id}`);
@@ -115,14 +121,14 @@ function BookmarksTab() {
       <button
         onClick={() => player.playById(bookmark.chapter.book_id, bookmark.chapter_id, bookmark.position_seconds)}
         className="w-9 h-9 rounded-full bg-surface-container-highest text-primary flex items-center justify-center"
-        aria-label="Пахш"
+        aria-label={t("Пахш")}
       >
         <Icon name="play_arrow" filled size={18} />
       </button>
       <button
         onClick={() => remove(bookmark.id)}
         className="w-9 h-9 rounded-full text-outline hover:text-error flex items-center justify-center"
-        aria-label="Нест кардан"
+        aria-label={t("Нест кардан")}
       >
         <Icon name="delete" size={18} />
       </button>
@@ -140,13 +146,14 @@ function Empty({ icon, text }) {
 }
 
 export function LoginFirst() {
+  const t = useT();
   return (
     <div className="px-6 py-20 flex flex-col items-center text-center gap-4">
       <Icon name="lock" size={40} className="text-primary" />
-      <p className="font-serif text-headline-sm">Аввал ворид шавед</p>
-      <p className="text-body-sm text-on-surface-variant">Пешрафт, дилхоҳҳо ва хатчӯбҳо дар ҳисоби шумо нигоҳ дошта мешаванд.</p>
+      <p className="font-serif text-headline-sm">{t("Аввал ворид шавед")}</p>
+      <p className="text-body-sm text-on-surface-variant">{t("Пешрафт, дилхоҳҳо ва хатчӯбҳо дар ҳисоби шумо нигоҳ дошта мешаванд.")}</p>
       <Link to="/login" className="h-12 px-6 rounded-xl bg-primary text-on-primary text-label-lg flex items-center">
-        Ворид шудан
+        {t("Ворид шудан")}
       </Link>
     </div>
   );

@@ -3,10 +3,12 @@ import { formatClock, percent } from "../format.js";
 import { usePlayer } from "../player.jsx";
 import Cover from "./Cover.jsx";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n.jsx";
 
 // The player bar. Phones: a small card above the bottom menu. Wide screens: a full bar at the bottom.
 export default function MiniPlayer() {
   const player = usePlayer();
+  const t = useT();
   if (!player.chapter) return null;
 
   const progress = percent(player.position, player.duration);
@@ -18,7 +20,7 @@ export default function MiniPlayer() {
 
   return (
     <aside className="fixed bottom-16 md:bottom-0 inset-x-0 z-40 px-3 pb-2 md:p-0 pb-safe">
-      <div className="max-w-lg md:max-w-none mx-auto bg-surface-container-high/90 md:bg-surface-container-low/95 backdrop-blur-2xl rounded-xl md:rounded-none md:border-t md:border-white/5 p-2.5 md:px-8 md:py-3 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_12px_rgba(224,165,38,0.12)]">
+      <div className="max-w-lg md:max-w-none mx-auto bg-surface-container-high/90 md:bg-surface-container-low/95 backdrop-blur-2xl rounded-xl md:rounded-none md:border-t md:border-line/5 p-2.5 md:px-8 md:py-3 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_12px_rgba(224,165,38,0.12)]">
         <div className="max-w-7xl mx-auto flex items-center gap-3 md:gap-6">
           {/* book */}
           <Link to="/player" className="flex items-center gap-3 flex-1 md:flex-none md:w-72 min-w-0">
@@ -38,19 +40,19 @@ export default function MiniPlayer() {
           {/* controls + seek bar (wide screens) */}
           <div className="hidden md:flex flex-1 flex-col items-center gap-1.5">
             <div className="flex items-center gap-4">
-              <button onClick={player.previous} className="text-on-surface-variant hover:text-on-surface" aria-label="Боби қаблӣ">
+              <button onClick={player.previous} className="text-on-surface-variant hover:text-on-surface" aria-label={t("Боби қаблӣ")}>
                 <Icon name="skip_previous" size={24} />
               </button>
-              <button onClick={() => player.skip(-10)} className="text-on-surface-variant hover:text-on-surface" aria-label="10 сония ба қафо">
+              <button onClick={() => player.skip(-10)} className="text-on-surface-variant hover:text-on-surface" aria-label={t("10 сония ба қафо")}>
                 <Icon name="replay_10" size={24} />
               </button>
-              <button onClick={player.toggle} className="w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-[0_0_12px_rgba(224,165,38,0.4)] hover:brightness-110" aria-label="Пахш ё таваққуф">
+              <button onClick={player.toggle} className="w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-[0_0_12px_rgba(224,165,38,0.4)] hover:brightness-110" aria-label={t("Пахш ё таваққуф")}>
                 <Icon name={player.playing ? "pause" : "play_arrow"} filled size={26} />
               </button>
-              <button onClick={() => player.skip(10)} className="text-on-surface-variant hover:text-on-surface" aria-label="10 сония ба пеш">
+              <button onClick={() => player.skip(10)} className="text-on-surface-variant hover:text-on-surface" aria-label={t("10 сония ба пеш")}>
                 <Icon name="forward_10" size={24} />
               </button>
-              <button onClick={player.next} disabled={!player.hasNext} className="text-on-surface-variant hover:text-on-surface disabled:opacity-30" aria-label="Боби навбатӣ">
+              <button onClick={player.next} disabled={!player.hasNext} className="text-on-surface-variant hover:text-on-surface disabled:opacity-30" aria-label={t("Боби навбатӣ")}>
                 <Icon name="skip_next" size={24} />
               </button>
             </div>
@@ -69,15 +71,15 @@ export default function MiniPlayer() {
           <div className="hidden md:flex w-72 justify-end items-center gap-2">
             <span className="text-label-sm text-primary px-2 py-1 rounded-full bg-primary/10">{player.speed}×</span>
             <Link to="/player" className="h-9 px-3 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center gap-1.5 text-label-md">
-              <Icon name="open_in_full" size={16} /> Плеер
+              <Icon name="open_in_full" size={16} /> {t("Плеер")}
             </Link>
           </div>
 
           {/* phones: two buttons */}
-          <button onClick={() => player.skip(10)} className="md:hidden w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-on-surface" aria-label="10 сония ба пеш">
+          <button onClick={() => player.skip(10)} className="md:hidden w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-on-surface" aria-label={t("10 сония ба пеш")}>
             <Icon name="forward_10" size={22} />
           </button>
-          <button onClick={player.toggle} className="md:hidden w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-[0_0_12px_rgba(224,165,38,0.4)]" aria-label="Пахш ё таваққуф">
+          <button onClick={player.toggle} className="md:hidden w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-[0_0_12px_rgba(224,165,38,0.4)]" aria-label={t("Пахш ё таваққуф")}>
             <Icon name={player.playing ? "pause" : "play_arrow"} filled size={24} />
           </button>
         </div>

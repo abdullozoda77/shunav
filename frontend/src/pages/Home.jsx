@@ -13,6 +13,7 @@ import Spinner from "../components/Spinner.jsx";
 import { formatDuration, percent } from "../format.js";
 import { useApi } from "../hooks.js";
 import { usePlayer } from "../player.jsx";
+import { useT } from "../i18n.jsx";
 
 // `author` is the full name as in the database, so the verse can show the author's 3D portrait
 const VERSES = [
@@ -33,6 +34,7 @@ export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const player = usePlayer();
+  const t = useT();
   const [categoryId, setCategoryId] = useState(null);
   const [search, setSearch] = useState("");
 
@@ -95,32 +97,32 @@ export default function Home() {
             {/* greeting and search */}
             <div className="flex flex-col gap-3">
               <span className="flex items-center gap-2 text-label-sm uppercase tracking-[0.2em] text-primary">
-                <span className="w-6 h-px bg-primary" /> Китобхонаи савтӣ
+                <span className="w-6 h-px bg-primary" /> {t("Китобхонаи савтӣ")}
               </span>
               <h1 className="font-serif text-headline-lg-mobile md:text-[46px] md:leading-[54px] font-semibold tracking-tight">
-                Салом{user ? `, ${user.name}` : ""} <span className="inline-block animate-bounce">👋</span>
+                {t("Салом")}{user ? `, ${user.name}` : ""} <span className="inline-block animate-bounce">👋</span>
               </h1>
               <p className="text-body-sm md:text-body-md text-on-surface-variant max-w-lg">
-                Классикони форсу тоҷик — аз Рӯдакӣ то Айнӣ — бо матни пурра ва овоз.
+                {t("Классикони форсу тоҷик — аз Рӯдакӣ то Айнӣ — бо матни пурра ва овоз.")}
               </p>
             </div>
 
-            <form onSubmit={submitSearch} className="flex items-center w-full max-w-lg h-12 md:h-14 bg-surface-container-lowest/70 backdrop-blur-md border border-white/10 rounded-2xl pl-4 pr-1.5 gap-3 focus-within:border-primary/60 transition-colors">
+            <form onSubmit={submitSearch} className="flex items-center w-full max-w-lg h-12 md:h-14 bg-surface-container-lowest/70 backdrop-blur-md border border-line/10 rounded-2xl pl-4 pr-1.5 gap-3 focus-within:border-primary/60 transition-colors">
               <Icon name="search" size={22} className="text-primary" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="w-full bg-transparent outline-none text-body-sm md:text-body-md placeholder:text-outline"
-                placeholder="Ҷустуҷӯи асар ё шоир..."
+                placeholder={t("Ҷустуҷӯи асар ё шоир...")}
               />
               <button className="hidden md:flex items-center gap-1.5 h-10 md:h-11 px-5 rounded-xl bg-primary text-on-primary text-label-md font-bold hover:brightness-110">
-                Ёфтан <Icon name="arrow_forward" size={18} />
+                {t("Ёфтан")} <Icon name="arrow_forward" size={18} />
               </button>
             </form>
 
             {/* the current book of the banner, in a glass card */}
             {featured && (
-              <div className="relative max-w-lg rounded-2xl overflow-hidden bg-surface-container-lowest/60 backdrop-blur-md border border-white/10 shadow-xl">
+              <div className="relative max-w-lg rounded-2xl overflow-hidden bg-surface-container-lowest/60 backdrop-blur-md border border-line/10 shadow-xl">
                 {/* phones: the cover on top (wide screens see it in the fan) */}
                 <div className="relative aspect-[16/9] md:hidden overflow-hidden">
                   <Cover book={featured} showTitle={false} frame={false} className="w-full h-full" />
@@ -130,7 +132,7 @@ export default function Home() {
                 <div key={featured.id} className="animate-fade-up p-5 flex flex-col gap-3">
                   <div className="flex items-center justify-between text-label-sm">
                     <span className="flex items-center gap-1.5 text-primary uppercase tracking-wider">
-                      <Icon name="auto_stories" filled size={15} /> Китоб
+                      <Icon name="auto_stories" filled size={15} /> {t("Китоб")}
                     </span>
                     <span className="text-on-surface-variant">
                       {heroIndex + 1} / {heroBooks.length}
@@ -139,14 +141,14 @@ export default function Home() {
 
                   <div>
                     <h2 className="font-serif text-headline-md md:text-[30px] md:leading-[38px] font-semibold">{featured.title}</h2>
-                    <p className="text-label-lg text-primary mt-0.5">{featured.author.name}</p>
+                    <p className="text-label-lg text-primary mt-0.5">{t(featured.author.name)}</p>
                   </div>
 
                   {/* details */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-label-md text-on-surface-variant">
                     {featured.category && (
                       <span className="flex items-center gap-1">
-                        <Icon name="category" size={16} className="text-secondary" /> {featured.category.name}
+                        <Icon name="category" size={16} className="text-secondary" /> {t(featured.category.name)}
                       </span>
                     )}
                     {featured.total_duration > 0 && (
@@ -161,26 +163,26 @@ export default function Home() {
                     )}
                   </div>
 
-                  <p className="text-body-sm text-on-surface-variant line-clamp-2">{featured.description}</p>
+                  <p className="text-body-sm text-on-surface-variant line-clamp-2">{t(featured.description)}</p>
 
                   <div className="flex items-center gap-3 pt-1">
                     <button
                       onClick={() => player.playById(featured.id)}
                       className="flex-1 h-11 bg-primary text-on-primary rounded-xl text-label-lg font-bold flex items-center justify-center gap-2 shadow-[0_6px_20px_-6px_rgba(255,192,65,0.6)] hover:brightness-110 active:scale-95"
                     >
-                      <Icon name="play_circle" filled size={22} /> Гӯш кардан
+                      <Icon name="play_circle" filled size={22} /> {t("Гӯш кардан")}
                     </button>
                     <Link
                       to={`/books/${featured.id}`}
-                      className="flex-1 h-11 rounded-xl border border-white/15 hover:border-primary/60 hover:text-primary flex items-center justify-center gap-2 text-label-lg"
+                      className="flex-1 h-11 rounded-xl border border-line/15 hover:border-primary/60 hover:text-primary flex items-center justify-center gap-2 text-label-lg"
                     >
-                      <Icon name="auto_stories" size={20} /> Хондан
+                      <Icon name="auto_stories" size={20} /> {t("Хондан")}
                     </Link>
                   </div>
                 </div>
 
                 {/* fills up until the banner turns to the next book (waits while paused) */}
-                <div className="h-0.5 bg-white/5">
+                <div className="h-0.5 bg-line/5">
                   <div
                     key={heroIndex}
                     className="h-full bg-primary hero-progress"
@@ -199,28 +201,28 @@ export default function Home() {
       {/* Continue listening */}
       {continueList?.length > 0 && (
         <section className="flex flex-col gap-3 md:gap-5">
-          <SectionTitle dot title="Идома додан" link="/library" linkText="Китобхона" />
+          <SectionTitle dot title={t("Идома додан")} link="/library" linkText={t("Китобхона")} />
           <div className={`${ROW} md:grid-cols-2 lg:grid-cols-3`}>
             {continueList.slice(0, 6).map(({ book, chapter, position_seconds }, index) => (
               <div key={book.id} className="group w-[82vw] max-w-[320px] md:w-auto md:max-w-none shrink-0 snap-center bg-surface-container-high rounded-xl p-3.5 md:p-5 shadow-lg hover:bg-surface-container-highest transition-colors">
                 <Link to={`/books/${book.id}`} className="flex items-start gap-3 md:gap-4">
                   <Cover book={book} showTitle={false} className="w-14 h-[72px] md:w-16 md:h-[84px] rounded-lg shrink-0" />
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-label-sm text-secondary">{book.category?.name}</span>
+                    <span className="text-label-sm text-secondary">{book.category && t(book.category.name)}</span>
                     <h3 className="font-serif text-label-lg md:text-headline-sm truncate">{book.title}</h3>
-                    <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+                    <p className="text-label-sm text-on-surface-variant truncate">{t(book.author.name)}</p>
                     <p className="text-[12px] text-tertiary truncate mt-0.5">{chapter.title}</p>
                   </div>
                 </Link>
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <ProgressRing value={percent(position_seconds, chapter.duration_seconds)} color={index % 2 ? "text-secondary" : "text-primary"} />
-                    <span className="text-label-sm text-on-surface-variant">{formatDuration(chapter.duration_seconds - position_seconds)} боқӣ монд</span>
+                    <span className="text-label-sm text-on-surface-variant">{t("{time} боқӣ монд", { time: formatDuration(chapter.duration_seconds - position_seconds) })}</span>
                   </div>
                   <button
                     onClick={() => player.playById(book.id, chapter.id, position_seconds)}
                     className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-[0_0_12px_rgba(255,192,65,0.35)] hover:brightness-110 active:scale-95"
-                    aria-label="Идома додан"
+                    aria-label={t("Идома додан")}
                   >
                     <Icon name="play_arrow" filled size={20} />
                   </button>
@@ -233,7 +235,7 @@ export default function Home() {
 
       {/* Categories + new books */}
       <section className="flex flex-col gap-4 md:gap-5">
-        <SectionTitle icon="auto_stories" title="Нав илова шуд" link="/search" linkText="Ҳама" />
+        <SectionTitle icon="auto_stories" title={t("Нав илова шуд")} link="/search" linkText={t("Ҳама")} />
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
           {[{ id: null, name: "Ҳама" }, ...(categories || [])].map((category) => (
             <button
@@ -245,7 +247,7 @@ export default function Home() {
                   : "bg-surface-container-high hover:text-primary"
               }`}
             >
-              {category.name}
+              {t(category.name)}
             </button>
           ))}
         </div>
@@ -258,7 +260,7 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <p className="text-body-sm text-on-surface-variant">Дар ин бахш ҳоло китоб нест.</p>
+          <p className="text-body-sm text-on-surface-variant">{t("Дар ин бахш ҳоло китоб нест.")}</p>
         )}
       </section>
 
@@ -267,7 +269,7 @@ export default function Home() {
         <div className="lg:col-span-2 flex flex-col gap-6 md:gap-8">
           {topBooks?.length > 0 && (
           <section className="flex flex-col gap-3 md:gap-5">
-            <SectionTitle icon="military_tech" iconColor="text-secondary" title="Беҳтаринҳо" />
+            <SectionTitle icon="military_tech" iconColor="text-secondary" title={t("Беҳтаринҳо")} />
             <div className="grid md:grid-cols-2 lg:grid-cols-1 gap-2 md:gap-3">
               {topBooks.map((book, index) => (
                 <div key={book.id} className="group flex items-center justify-between p-3 md:p-4 rounded-xl bg-surface-container hover:bg-surface-container-high transition-colors">
@@ -278,11 +280,11 @@ export default function Home() {
                     <Cover book={book} showTitle={false} className="w-11 h-14 rounded-lg shrink-0" />
                     <div className="min-w-0">
                       <h4 className="font-serif text-label-lg truncate">{book.title}</h4>
-                      <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+                      <p className="text-label-sm text-on-surface-variant truncate">{t(book.author.name)}</p>
                       <span className="flex items-center text-[11px] text-primary font-semibold mt-0.5">
                         <Icon name="star" filled size={12} className="mr-0.5" />
                         {book.average_rating.toFixed(1)}
-                        <span className="text-outline font-normal ml-1">• {book.reviews_count} тақриз</span>
+                        <span className="text-outline font-normal ml-1">• {t("{n} тақриз", { n: book.reviews_count })}</span>
                         {book.total_duration > 0 && <span className="text-outline font-normal ml-1">• {formatDuration(book.total_duration)}</span>}
                       </span>
                     </div>
@@ -290,7 +292,7 @@ export default function Home() {
                   <button
                     onClick={() => player.playById(book.id)}
                     className="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-surface-container-high hover:bg-primary hover:text-on-primary shrink-0 ml-2"
-                    aria-label="Гӯш кардан"
+                    aria-label={t("Гӯш кардан")}
                   >
                     <Icon name="play_arrow" filled size={20} />
                   </button>
@@ -304,10 +306,10 @@ export default function Home() {
           {stats && (
             <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { icon: "auto_stories", value: stats.books, label: "китоб", color: "text-primary" },
-                { icon: "history_edu", value: stats.authors, label: "муаллиф", color: "text-secondary" },
-                { icon: "menu_book", value: stats.chapters, label: "боб", color: "text-primary" },
-                { icon: "headphones", value: formatDuration(stats.audio_seconds), label: "аудио", color: "text-secondary" },
+                { icon: "auto_stories", value: stats.books, label: t("китоб"), color: "text-primary" },
+                { icon: "history_edu", value: stats.authors, label: t("муаллиф"), color: "text-secondary" },
+                { icon: "menu_book", value: stats.chapters, label: t("боб"), color: "text-primary" },
+                { icon: "headphones", value: formatDuration(stats.audio_seconds), label: t("аудио"), color: "text-secondary" },
               ].map((item) => (
                 <div key={item.label} className="p-4 rounded-2xl bg-surface-container flex items-center gap-3">
                   <div className="w-11 h-11 rounded-xl bg-surface-container-highest flex items-center justify-center shrink-0">
@@ -325,7 +327,7 @@ export default function Home() {
           {/* genres: an emblem and a colour each */}
           {stats?.genres.length > 0 && (
             <section className="flex flex-col gap-3 md:gap-5">
-              <SectionTitle icon="category" iconColor="text-secondary" title="Жанрҳо" link="/search" linkText="Ҳама китобҳо" />
+              <SectionTitle icon="category" iconColor="text-secondary" title={t("Жанрҳо")} link="/search" linkText={t("Ҳама китобҳо")} />
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                 {stats.genres.map((genre) => (
                   <GenreCard key={genre.id} genre={genre} />
@@ -339,7 +341,7 @@ export default function Home() {
           <section className="p-5 md:p-6 rounded-2xl bg-gradient-to-br from-surface-container-high to-surface-container flex flex-col gap-3 shadow-md relative overflow-hidden">
             <div className="flex items-center gap-2 text-primary">
               <Icon name="format_quote" size={18} />
-              <span className="text-label-sm uppercase tracking-wider font-bold">Байти рӯз</span>
+              <span className="text-label-sm uppercase tracking-wider font-bold">{t("Байти рӯз")}</span>
             </div>
             <p className="relative font-serif text-verse md:text-[20px] md:leading-[36px] italic">«{verse.text}»</p>
             {/* the author: small 3D portrait in an arch, like in the authors section */}
@@ -352,7 +354,7 @@ export default function Home() {
                 />
               )}
               <div className="min-w-0">
-                <p className="text-label-md text-secondary truncate">{verse.author}</p>
+                <p className="text-label-md text-secondary truncate">{t(verse.author)}</p>
                 {verseAuthor?.birth_year && (
                   <p className="text-label-sm text-on-surface-variant">
                     {verseAuthor.birth_year}–{verseAuthor.death_year}
@@ -366,9 +368,9 @@ export default function Home() {
 
           {!user && (
             <section className="p-5 md:p-6 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col gap-3">
-              <h3 className="font-serif text-headline-sm">Аз ҳамон ҷо давом диҳед</h3>
-              <p className="text-body-sm text-on-surface-variant">Ворид шавед, то пешрафт, хатчӯбҳо ва китобҳои дилхоҳи шумо нигоҳ дошта шаванд.</p>
-              <Link to="/register" className="h-11 rounded-xl bg-primary text-on-primary text-label-lg flex items-center justify-center">Сабти ном</Link>
+              <h3 className="font-serif text-headline-sm">{t("Аз ҳамон ҷо давом диҳед")}</h3>
+              <p className="text-body-sm text-on-surface-variant">{t("Ворид шавед, то пешрафт, хатчӯбҳо ва китобҳои дилхоҳи шумо нигоҳ дошта шаванд.")}</p>
+              <Link to="/register" className="h-11 rounded-xl bg-primary text-on-primary text-label-lg flex items-center justify-center">{t("Сабти ном")}</Link>
             </section>
           )}
         </aside>

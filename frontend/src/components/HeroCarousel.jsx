@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import Cover from "./Cover.jsx";
 import { fanDistance, fanStyle } from "./fan.js";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n.jsx";
 
 // All books as a fan of three; the middle one is the current book.
 export default function HeroCarousel({ books, current, onChange }) {
+  const t = useT();
   const count = books.length;
   const go = (index) => onChange((index + count) % count);
 
@@ -37,7 +39,7 @@ export default function HeroCarousel({ books, current, onChange }) {
 
       {/* arrows and dots */}
       <div className="flex items-center gap-3">
-        <button onClick={() => go(current - 1)} className="w-9 h-9 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center" aria-label="Китоби қаблӣ">
+        <button onClick={() => go(current - 1)} className="w-9 h-9 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center" aria-label={t("Китоби қаблӣ")}>
           <Icon name="chevron_left" size={20} />
         </button>
         <div className="flex items-center gap-1.5">
@@ -50,7 +52,7 @@ export default function HeroCarousel({ books, current, onChange }) {
             />
           ))}
         </div>
-        <button onClick={() => go(current + 1)} className="w-9 h-9 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center" aria-label="Китоби навбатӣ">
+        <button onClick={() => go(current + 1)} className="w-9 h-9 rounded-full bg-surface-container-high hover:bg-surface-bright flex items-center justify-center" aria-label={t("Китоби навбатӣ")}>
           <Icon name="chevron_right" size={20} />
         </button>
       </div>

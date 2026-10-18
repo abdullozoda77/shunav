@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fanDistance, fanStyle } from "./fan.js";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n.jsx";
 
 const SECONDS = 5;
 
 // Authors with their portraits, oldest first, turning by themselves (they wait while the mouse is over them).
 export default function AuthorCarousel({ authors }) {
+  const t = useT();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const count = authors.length;
@@ -30,7 +32,7 @@ export default function AuthorCarousel({ authors }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-primary">
           <Icon name="history_edu" size={18} />
-          <span className="text-label-sm uppercase tracking-wider font-bold">Муаллифон</span>
+          <span className="text-label-sm uppercase tracking-wider font-bold">{t("Муаллифон")}</span>
         </div>
         <span className="text-label-sm text-on-surface-variant">
           {current + 1} / {count}
@@ -57,26 +59,26 @@ export default function AuthorCarousel({ authors }) {
 
       {/* about the current author */}
       <div key={author.id} className="animate-fade-up text-center mt-2">
-        <h3 className="font-serif text-headline-sm">{author.name}</h3>
+        <h3 className="font-serif text-headline-sm">{t(author.name)}</h3>
         {author.birth_year && (
           <p className="text-label-md text-primary">
             {author.birth_year}–{author.death_year}
           </p>
         )}
-        {author.bio && <p className="text-body-sm text-on-surface-variant mt-2 line-clamp-2">{author.bio}</p>}
+        {author.bio && <p className="text-body-sm text-on-surface-variant mt-2 line-clamp-2">{t(author.bio)}</p>}
         <Link
           to={`/search?author_id=${author.id}`}
           className="inline-flex items-center gap-1 mt-3 text-label-md text-secondary hover:underline"
         >
-          {author.books_count ? `${author.books_count} китоб` : "Китобҳо ба наздикӣ"}
+          {author.books_count ? t("{n} китоб", { n: author.books_count }) : t("Китобҳо ба наздикӣ")}
           <Icon name="chevron_right" size={16} />
         </Link>
-        {author.photo_credit && <p className="text-[10px] text-outline mt-2">{author.photo_credit}</p>}
+        {author.photo_credit && <p className="text-[10px] text-outline mt-2">{t(author.photo_credit)}</p>}
       </div>
 
       {/* arrows and dots */}
       <div className="flex items-center justify-center gap-3 mt-4">
-        <button onClick={() => go(current - 1)} className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-surface-bright flex items-center justify-center" aria-label="Муаллифи қаблӣ">
+        <button onClick={() => go(current - 1)} className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-surface-bright flex items-center justify-center" aria-label={t("Муаллифи қаблӣ")}>
           <Icon name="chevron_left" size={18} />
         </button>
         <div className="flex gap-1.5">
@@ -89,7 +91,7 @@ export default function AuthorCarousel({ authors }) {
             />
           ))}
         </div>
-        <button onClick={() => go(current + 1)} className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-surface-bright flex items-center justify-center" aria-label="Муаллифи навбатӣ">
+        <button onClick={() => go(current + 1)} className="w-8 h-8 rounded-full bg-surface-container-highest hover:bg-surface-bright flex items-center justify-center" aria-label={t("Муаллифи навбатӣ")}>
           <Icon name="chevron_right" size={18} />
         </button>
       </div>

@@ -2,11 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme colours as "r g b" (Tailwind adds the opacity). Dark is the default; <html data-theme="light"> swaps them.
+   The theme is chosen in theme.jsx (and set before the page draws by the small script in index.html). */
+:root {
+  color-scheme: dark;
+  --c-surface: 15 19 29;
+  --c-surface-bright: 53 57 68;
+  --c-surface-container-lowest: 10 14 24;
+  --c-surface-container-low: 23 27 38;
+  --c-surface-container: 28 31 42;
+  --c-surface-container-high: 38 42 53;
+  --c-surface-container-highest: 49 53 64;
+  --c-surface-variant: 49 53 64;
+  --c-primary: 255 192 65;
+  --c-primary-container: 224 165 38;
+  --c-primary-fixed: 255 222 168;
+  --c-primary-fixed-dim: 250 188 62;
+  --c-on-primary: 66 45 0;
+  --c-on-primary-container: 88 62 0;
+  --c-secondary: 79 219 200;
+  --c-secondary-container: 4 180 162;
+  --c-secondary-fixed: 113 248 228;
+  --c-secondary-fixed-dim: 79 219 200;
+  --c-tertiary: 209 202 185;
+  --c-tertiary-fixed: 233 226 208;
+  --c-on-surface: 223 226 241;
+  --c-on-surface-variant: 212 196 174;
+  --c-outline: 156 143 123;
+  --c-outline-variant: 80 69 52;
+  --c-error: 255 180 171;
+  --c-line: 255 255 255;
+}
+
+/* Light: warm paper, ink-brown text, deeper gold and teal so they stay readable on paper.
+   primary-fixed stays light: it is only used on the dark genre cards. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --c-surface: 248 243 234;
+  --c-surface-bright: 221 211 193;
+  --c-surface-container-lowest: 255 255 255;
+  --c-surface-container-low: 242 235 223;
+  --c-surface-container: 236 228 214;
+  --c-surface-container-high: 229 220 203;
+  --c-surface-container-highest: 220 210 191;
+  --c-surface-variant: 220 210 191;
+  --c-primary: 156 107 0;
+  --c-primary-container: 242 177 52;
+  --c-primary-fixed-dim: 176 122 10;
+  --c-on-primary: 255 255 255;
+  --c-on-primary-container: 61 42 0;
+  --c-secondary: 0 121 107;
+  --c-secondary-container: 43 179 160;
+  --c-secondary-fixed: 0 87 77;
+  --c-secondary-fixed-dim: 0 105 92;
+  --c-tertiary: 109 97 80;
+  --c-tertiary-fixed: 90 79 63;
+  --c-on-surface: 31 27 20;
+  --c-on-surface-variant: 91 79 61;
+  --c-outline: 139 126 105;
+  --c-outline-variant: 207 194 171;
+  --c-error: 186 26 26;
+  --c-line: 90 60 20;
+}
+
 html,
 body {
   margin: 0;
-  background-color: #0f131d;
-  color: #dfe2f1;
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-on-surface));
   overscroll-behavior: none;
 }
 
@@ -59,7 +122,7 @@ body {
     linear-gradient(var(--book-color), var(--book-color)) 5px 8px / 60% 1px no-repeat,
     linear-gradient(var(--book-color), var(--book-color)) 5px 13px / 60% 1px no-repeat,
     linear-gradient(var(--book-color), var(--book-color)) 5px 18px / 45% 1px no-repeat,
-    #0f131d;
+    rgb(var(--c-surface));
 }
 
 .mini-page-left {

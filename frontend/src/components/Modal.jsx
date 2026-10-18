@@ -1,5 +1,8 @@
+import { useT } from "../i18n.jsx";
+
 // A bottom sheet on phones, a centered box on wide screens.
 export default function Modal({ title, onClose, children }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
       <div
@@ -8,7 +11,7 @@ export default function Modal({ title, onClose, children }) {
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-serif text-headline-sm">{title}</h3>
-          <button onClick={onClose} className="w-9 h-9 rounded-full hover:bg-surface-bright" aria-label="Пӯшидан">
+          <button onClick={onClose} className="w-9 h-9 rounded-full hover:bg-surface-bright transition-transform hover:rotate-90" aria-label={t("Пӯшидан")}>
             ✕
           </button>
         </div>

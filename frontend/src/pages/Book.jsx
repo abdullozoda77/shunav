@@ -12,8 +12,10 @@ import Spinner from "../components/Spinner.jsx";
 import Stars from "../components/Stars.jsx";
 import { formatClock, formatDuration, percent, timeAgo } from "../format.js";
 import { useApi } from "../hooks.js";
+import { useLanguage, useT } from "../i18n.jsx";
 import { usePlayer } from "../player.jsx";
 
+// translated where shown
 const LICENSES = {
   public_domain: "Мулки ҷамъиятӣ (Public Domain) — бепул ва кушода",
   creative_commons: "Creative Commons — бо иҷозати муаллиф",
@@ -24,10 +26,12 @@ const SHOWN_CHAPTERS = 4;
 const FINISHED_GAP = 10; // the same rule as the backend: under 10 s left = finished
 
 export default function Book() {
+  const t = useT();
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const player = usePlayer();
+  const { language } = useLanguage();
 
   const { data: book, loading, error } = useApi(`/books/${id}`);
   const { data: reviews, reload: reloadReviews } = useApi(`/books/${id}/reviews`);
@@ -47,7 +51,7 @@ export default function Book() {
   if (error || !book)
     return (
       <Page>
-        <p className="p-6 text-center text-on-surface-variant">Китоб ёфт нашуд.</p>
+        <p className="p-6 text-center text-on-surface-variant">{t("Китоб ёфт нашуд.")}</p>
       </Page>
     );
 
@@ -101,12 +105,12 @@ export default function Book() {
           <div className="px-4 py-2 lg:pt-4 flex items-center justify-between">
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high/80">
               <Icon name="verified" size={16} className="text-secondary" />
-              <span className="text-label-sm text-secondary uppercase">{book.category?.name || "Асари классикӣ"}</span>
+              <span className="text-label-sm text-secondary uppercase">{t(book.category?.name || "Асари классикӣ")}</span>
             </div>
             <button
               onClick={toggleFavorite}
               className={`w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center active:scale-90 shadow-md ${isFavorite ? "text-primary" : "text-on-surface-variant"}`}
-              aria-label="Ба дилхоҳ"
+              aria-label={t("Ба дилхоҳ")}
             >
               <Icon name="favorite" filled={isFavorite} size={22} className={isFavorite ? "scale-110 transition-transform" : ""} />
             </button>
@@ -119,7 +123,7 @@ export default function Book() {
 
             <h2 className="font-serif text-headline-lg-mobile font-bold mt-4">«{book.title}»</h2>
             <Link to={`/search?author_id=${book.author.id}`} className="text-label-lg text-primary mt-1 hover:underline">
-              {book.author.name}
+              {t(book.author.name)}
               {book.author.birth_year && (
                 <span className="text-on-surface-variant text-label-md">
                   {" "}
@@ -132,24 +136,32 @@ export default function Book() {
               <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-high/90">
                 <Icon name="mic" size={18} className="text-secondary" />
                 <span className="text-label-md">
-                  Ровӣ: <strong className="text-secondary-fixed-dim">{book.narrator.name}</strong>
+                  {t("Ровӣ:")} <strong className="text-secondary-fixed-dim">{t(book.narrator.name)}</strong>
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-secondary-container/20 text-secondary-fixed-dim text-label-sm">
-                  {book.narrator.kind === "ai" ? "AI" : "Инсонӣ"}
+                  {book.narrator.kind === "ai" ? "AI" : t("Инсонӣ")}
                 </span>
               </div>
             )}
 
             <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-low text-on-surface-variant text-label-sm">
               <Icon name="lock_open_right" size={14} className="text-tertiary" />
-              {LICENSES[book.license_type]}
+              {t(LICENSES[book.license_type])}
             </div>
+
+            {/* the site may be in Russian or English, the books are always Tajik */}
+            {language !== "tg" && (
+              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-label-sm">
+                <Icon name="translate" size={14} />
+                {t("Матн ва аудио бо забони тоҷикӣ")}
+              </div>
+            )}
 
             {/* Numbers */}
             <div className="w-full mt-5 grid grid-cols-3 gap-2 bg-surface-container-low/80 p-3 rounded-xl">
-              <Stat icon="schedule" value={book.total_duration ? formatDuration(book.total_duration) : "—"} label="Давомнокӣ" />
-              <Stat icon="star" filled value={book.reviews_count ? book.average_rating.toFixed(1) : "—"} label={`${book.reviews_count} тақриз`} />
-              <Stat icon="menu_book" value={book.chapters.length} label="Боб" color="text-secondary" />
+              <Stat icon="schedule" value={book.total_duration ? formatDuration(book.total_duration) : "—"} label={t("Давомнокӣ")} />
+              <Stat icon="star" filled value={book.reviews_count ? book.average_rating.toFixed(1) : "—"} label={t("{n} тақриз", { n: book.reviews_count })} />
+              <Stat icon="menu_book" value={book.chapters.length} label={t("Бобҳо")} color="text-secondary" />
             </div>
 
             {/* Main buttons */}
@@ -160,14 +172,14 @@ export default function Book() {
                 className="flex-1 h-12 rounded-xl bg-primary-container text-on-primary-container text-label-lg font-bold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] disabled:opacity-50"
               >
                 <Icon name="headphones" size={22} />
-                {resumeChapter ? (positions[resumeChapter.id] ? "Идома додан" : "Гӯш кардан") : "Аудио ба наздикӣ"}
+                {t(resumeChapter ? (positions[resumeChapter.id] ? "Идома додан" : "Гӯш кардан") : "Аудио ба наздикӣ")}
               </button>
               <button
                 onClick={() => book.chapters[0] && navigate(`/read/${book.chapters[0].id}`)}
                 disabled={!book.chapters.length}
                 className="flex-1 h-12 rounded-xl bg-surface-container-high text-label-lg flex items-center justify-center gap-2 shadow active:scale-[0.98] disabled:opacity-50"
               >
-                <Icon name="auto_stories" size={20} className="text-secondary" /> Хондан
+                <Icon name="auto_stories" size={20} className="text-secondary" /> {t("Хондан")}
               </button>
             </div>
           </section>
@@ -180,11 +192,11 @@ export default function Book() {
               <div className="bg-surface-container rounded-xl p-4 lg:p-6">
                 <div className="flex items-center gap-2 mb-2">
                   <Icon name="history_edu" size={20} className="text-primary" />
-                  <h3 className="font-serif text-headline-sm font-semibold">Шарҳи китоб</h3>
+                  <h3 className="font-serif text-headline-sm font-semibold">{t("Шарҳи китоб")}</h3>
                 </div>
-                <p className={`text-body-sm lg:text-body-md text-on-surface-variant ${showFullText ? "" : "line-clamp-3"}`}>{book.description}</p>
+                <p className={`text-body-sm lg:text-body-md text-on-surface-variant ${showFullText ? "" : "line-clamp-3"}`}>{t(book.description)}</p>
                 <button onClick={() => setShowFullText(!showFullText)} className="mt-2 text-primary text-label-sm flex items-center gap-1">
-                  {showFullText ? "Пӯшидан" : "Бештар хондан"}
+                  {t(showFullText ? "Камтар нишон додан" : "Бештар хондан")}
                   <Icon name="expand_more" size={16} className={showFullText ? "rotate-180" : ""} />
                 </button>
               </div>
@@ -195,12 +207,12 @@ export default function Book() {
           <section className="px-4 lg:px-0 mt-5 lg:mt-8">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-baseline gap-2">
-                <h3 className="font-serif text-headline-sm lg:text-headline-md font-bold">Мундариҷа</h3>
-                <span className="text-label-sm text-on-surface-variant">{book.chapters.length} боб</span>
+                <h3 className="font-serif text-headline-sm lg:text-headline-md font-bold">{t("Мундариҷа")}</h3>
+                <span className="text-label-sm text-on-surface-variant">{t("{n} боб", { n: book.chapters.length })}</span>
               </div>
               {user && book.total_duration > 0 && (
                 <span className="flex items-center gap-1 text-secondary text-label-sm">
-                  <Icon name="sync" size={16} /> Пешрафт: {bookPercent}%
+                  <Icon name="sync" size={16} /> {t("Пешрафт: {n}%", { n: bookPercent })}
                 </span>
               )}
             </div>
@@ -233,10 +245,10 @@ export default function Book() {
 
                     <Link to={`/read/${chapter.id}`} className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-label-sm">
-                        {done && <span className="text-secondary">Анҷом ёфт</span>}
-                        {isPlaying && <span className="text-primary">Дар ҳоли пахш</span>}
+                        {done && <span className="text-secondary">{t("Анҷом ёфт")}</span>}
+                        {isPlaying && <span className="text-primary">{t("Дар ҳоли пахш")}</span>}
                         {started && !isPlaying && <span className="text-primary">{percent(position, chapter.duration_seconds)}%</span>}
-                        {!chapter.audio_file && <span className="text-outline">Танҳо матн</span>}
+                        {!chapter.audio_file && <span className="text-outline">{t("Танҳо матн")}</span>}
                         {chapter.duration_seconds > 0 && <span className="text-on-surface-variant">{formatClock(chapter.duration_seconds)}</span>}
                       </div>
                       <h4 className="font-serif text-body-md truncate mt-0.5">{chapter.title}</h4>
@@ -251,7 +263,7 @@ export default function Book() {
                       <button
                         onClick={() => (isPlaying ? player.toggle() : listen(chapter))}
                         className="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-primary active:scale-90 shrink-0"
-                        aria-label={isPlaying && player.playing ? "Таваққуф" : "Пахш"}
+                        aria-label={t(isPlaying && player.playing ? "Таваққуф" : "Пахш")}
                       >
                         <Icon name={isPlaying && player.playing ? "pause" : done ? "replay" : "play_arrow"} filled size={18} />
                       </button>
@@ -266,7 +278,7 @@ export default function Book() {
                 onClick={() => setShowAllChapters(!showAllChapters)}
                 className="w-full mt-3 py-2.5 rounded-xl bg-surface-container-low text-primary text-label-md flex items-center justify-center gap-1"
               >
-                {showAllChapters ? "Камтар нишон додан" : `Дидани тамоми ${book.chapters.length} боб`}
+                {showAllChapters ? t("Камтар нишон додан") : t("Дидани тамоми {n} боб", { n: book.chapters.length })}
                 <Icon name="keyboard_arrow_down" size={18} className={showAllChapters ? "rotate-180" : ""} />
               </button>
             )}
@@ -276,15 +288,15 @@ export default function Book() {
           <section className="px-4 lg:px-0 mt-7 lg:mt-10">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-serif text-headline-sm lg:text-headline-md font-bold">Тақризҳо ва баҳо</h3>
-                <p className="text-label-sm text-on-surface-variant">Андешаи шунавандагони Шунав</p>
+                <h3 className="font-serif text-headline-sm lg:text-headline-md font-bold">{t("Тақризҳо ва баҳо")}</h3>
+                <p className="text-label-sm text-on-surface-variant">{t("Андешаи шунавандагони Шунав")}</p>
               </div>
               {!myReview && (
                 <button
                   onClick={() => (user ? setModal("review") : navigate("/login"))}
                   className="px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-label-sm flex items-center gap-1 active:scale-95"
                 >
-                  <Icon name="rate_review" size={16} /> Навиштан
+                  <Icon name="rate_review" size={16} /> {t("Навиштан")}
                 </button>
               )}
             </div>
@@ -296,7 +308,7 @@ export default function Book() {
                   <div className="mt-1">
                     <Stars value={book.average_rating} size={16} />
                   </div>
-                  <span className="text-label-sm text-on-surface-variant mt-1">{reviews.length} баҳо</span>
+                  <span className="text-label-sm text-on-surface-variant mt-1">{t("{n} баҳо", { n: reviews.length })}</span>
                 </div>
                 <div className="flex-1 space-y-1.5">
                   {starCounts.map(({ stars, share }) => (
@@ -313,7 +325,7 @@ export default function Book() {
             )}
 
             <div className="mt-4 grid md:grid-cols-2 gap-3">
-              {reviews?.length === 0 && <p className="text-body-sm text-on-surface-variant">Ҳоло тақриз нест. Аввалин шуда нависед!</p>}
+              {reviews?.length === 0 && <p className="text-body-sm text-on-surface-variant">{t("Ҳоло тақриз нест. Аввалин шуда нависед!")}</p>}
               {reviews?.map((review) => (
                 <div key={review.id} className="p-3.5 rounded-xl bg-surface-container">
                   <div className="flex items-center justify-between">
@@ -337,7 +349,7 @@ export default function Book() {
                       }}
                       className="mt-2 text-label-sm text-outline hover:text-error"
                     >
-                      Нест кардан
+                      {t("Нест кардан")}
                     </button>
                   )}
                 </div>
@@ -354,14 +366,14 @@ export default function Book() {
                 rel="noreferrer"
                 className="flex items-center gap-1.5 text-on-surface-variant text-label-sm hover:underline"
               >
-                <Icon name="policy" size={16} /> Манбаи матн
+                <Icon name="policy" size={16} /> {t("Манбаи матн")}
               </a>
             )}
             <button
               onClick={() => setModal("report")}
               className="mt-2 text-on-surface-variant/70 hover:text-error text-label-sm underline underline-offset-4 decoration-outline-variant"
             >
-              Шикоят аз ҳуқуқи муаллиф
+              {t("Шикоят аз ҳуқуқи муаллиф")}
             </button>
           </footer>
         </div>
@@ -384,16 +396,17 @@ export default function Book() {
 
 // Inner page frame: back button header + content + mini player
 function Page({ children, onShare }) {
+  const t = useT();
   return (
     <>
       <Header
-        title="Китоб"
+        title={t("Китоб")}
         actions={
           onShare && (
             <button
               onClick={onShare}
               className="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface"
-              aria-label="Мубодила"
+              aria-label={t("Мубодила")}
             >
               <Icon name="share" size={20} />
             </button>
@@ -420,6 +433,7 @@ function Stat({ icon, value, label, filled, color = "text-primary" }) {
 }
 
 function ReviewModal({ bookId, onClose, onSaved }) {
+  const t = useT();
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -435,24 +449,25 @@ function ReviewModal({ bookId, onClose, onSaved }) {
   }
 
   return (
-    <Modal title="Тақриз навиштан" onClose={onClose}>
+    <Modal title={t("Тақриз навиштан")} onClose={onClose}>
       <form onSubmit={save} className="flex flex-col gap-3">
         <Stars value={rating} size={30} onChange={setRating} />
         <textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
           rows={4}
-          placeholder="Фикри шумо дар бораи китоб..."
+          placeholder={t("Фикри шумо дар бораи китоб...")}
           className="w-full p-3 rounded-xl bg-surface-container text-on-surface placeholder:text-outline outline-none focus:ring-2 focus:ring-primary"
         />
         {error && <p className="text-error text-body-sm">{error}</p>}
-        <button className="h-12 bg-primary text-on-primary rounded-xl text-label-lg">Фиристодан</button>
+        <button className="h-12 bg-primary text-on-primary rounded-xl text-label-lg">{t("Фиристодан")}</button>
       </form>
     </Modal>
   );
 }
 
 function ReportModal({ bookId, onClose }) {
+  const t = useT();
   const [form, setForm] = useState({ email: "", message: "" });
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -470,19 +485,19 @@ function ReportModal({ bookId, onClose }) {
   const input = "w-full p-3 rounded-xl bg-surface-container text-on-surface placeholder:text-outline outline-none focus:ring-2 focus:ring-primary";
 
   return (
-    <Modal title="Шикоят аз ҳуқуқ" onClose={onClose}>
+    <Modal title={t("Шикоят аз ҳуқуқ")} onClose={onClose}>
       {sent ? (
         <div className="text-center py-4">
           <Icon name="check_circle" filled size={40} className="text-secondary" />
-          <p className="mt-2">Ташаккур! Мо шикояти шуморо дида мебароем.</p>
+          <p className="mt-2">{t("Ташаккур! Мо шикояти шуморо дида мебароем.")}</p>
         </div>
       ) : (
         <form onSubmit={send} className="flex flex-col gap-3">
-          <p className="text-body-sm text-on-surface-variant">Агар ин китоб ҳуқуқи шумо ё каси дигарро вайрон кунад, ба мо нависед.</p>
+          <p className="text-body-sm text-on-surface-variant">{t("Агар ин китоб ҳуқуқи шумо ё каси дигарро вайрон кунад, ба мо нависед.")}</p>
           <input
             type="email"
             required
-            placeholder="Email-и шумо"
+            placeholder={t("Email-и шумо")}
             className={input}
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -491,13 +506,13 @@ function ReportModal({ bookId, onClose }) {
             required
             minLength={5}
             rows={4}
-            placeholder="Шарҳ"
+            placeholder={t("Шарҳ")}
             className={input}
             value={form.message}
             onChange={(e) => setForm({ ...form, message: e.target.value })}
           />
           {error && <p className="text-error text-body-sm">{error}</p>}
-          <button className="h-12 bg-primary text-on-primary rounded-xl text-label-lg">Фиристодан</button>
+          <button className="h-12 bg-primary text-on-primary rounded-xl text-label-lg">{t("Фиристодан")}</button>
         </form>
       )}
     </Modal>

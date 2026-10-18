@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import { formatDuration } from "../format.js";
 import Cover from "./Cover.jsx";
 import Icon from "./Icon.jsx";
+import { useT } from "../i18n.jsx";
 
 // Small vertical card: cover, title, author, length. Fixed width in a phone carousel, grid cell on wide screens.
 export default function BookCard({ book }) {
+  const t = useT();
   return (
     <Link to={`/books/${book.id}`} className="w-36 md:w-auto shrink-0 snap-start flex flex-col gap-2 group">
       <div className="relative w-full aspect-[3/4]">
@@ -18,7 +20,7 @@ export default function BookCard({ book }) {
       </div>
       <div className="flex flex-col min-w-0">
         <h4 className="font-serif text-label-md truncate group-hover:text-primary">{book.title}</h4>
-        <p className="text-label-sm text-on-surface-variant truncate">{book.author.name}</p>
+        <p className="text-label-sm text-on-surface-variant truncate">{t(book.author.name)}</p>
         {book.total_duration > 0 && (
           <div className="flex items-center gap-1 text-[11px] text-tertiary mt-0.5">
             <Icon name="schedule" size={13} />

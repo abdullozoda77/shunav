@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 import Icon from "../components/Icon.jsx";
 import { useApi } from "../hooks.js";
 import Cover from "../components/Cover.jsx";
+import LanguageSwitch from "../components/LanguageSwitch.jsx";
+import ThemeSwitch from "../components/ThemeSwitch.jsx";
+import { useT } from "../i18n.jsx";
 
+// texts are translated where shown
 const SLIDES = [
   {
     badge: "Ганҷинаи Миллӣ",
@@ -46,6 +50,7 @@ function markWelcomed() {
 }
 
 export default function Welcome() {
+  const t = useT();
   const [slide, setSlide] = useState(0);
   const touchStart = useRef(0);
   const { data: books } = useApi("/books?page_size=3");
@@ -69,11 +74,15 @@ export default function Welcome() {
       <div className="relative z-20 px-4 md:px-8 pt-4 md:pt-6 w-full max-w-6xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-full">
           <Icon name="auto_stories" filled size={18} className="text-primary" />
-          <span className="font-serif text-primary text-[16px] leading-none">Шунав</span>
+          <span className="font-serif text-primary text-[16px] leading-none">{t("Шунав")}</span>
         </div>
-        <Link to="/" onClick={markWelcomed} className="text-label-md text-on-surface-variant hover:text-on-surface px-3 py-1.5">
-          Гузаштан
-        </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageSwitch />
+          <ThemeSwitch />
+          <Link to="/" onClick={markWelcomed} className="text-label-md text-on-surface-variant hover:text-on-surface px-2 sm:px-3 py-1.5">
+            {t("Гузаштан")}
+          </Link>
+        </div>
       </div>
 
       {/* Wide screens: text on the left, pictures on the right */}
@@ -98,7 +107,7 @@ export default function Welcome() {
             {slide === 1 && (
               <div className="relative z-20 w-64 p-4 rounded-xl bg-surface-container-high shadow-2xl flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-serif text-[13px] text-primary">Хондан бо садо</span>
+                  <span className="font-serif text-[13px] text-primary">{t("Хондан бо садо")}</span>
                   <Icon name="sync" size={18} className="text-secondary" />
                 </div>
                 <p className="p-2.5 rounded-lg bg-surface-container-low font-serif text-[13px] leading-relaxed italic">
@@ -122,8 +131,8 @@ export default function Welcome() {
                   <Icon name="graphic_eq" size={32} />
                 </div>
                 <div>
-                  <p className="font-serif text-[15px]">Ровиёни Барҷаста ва AI</p>
-                  <p className="text-[12px] text-tertiary mt-1">Овози зиндаи устодони сухан ва садои ҳушманди сунъӣ</p>
+                  <p className="font-serif text-[15px]">{t("Ровиёни Барҷаста ва AI")}</p>
+                  <p className="text-[12px] text-tertiary mt-1">{t("Овози зиндаи устодони сухан ва садои ҳушманди сунъӣ")}</p>
                 </div>
                 <div className="flex gap-1.5 items-end h-8">
                   {[0, 0.15, 0.3, 0.2, 0.4, 0.1].map((delay, i) => (
@@ -140,7 +149,7 @@ export default function Welcome() {
               <button
                 key={index}
                 onClick={() => setSlide(index)}
-                aria-label={`Слайд ${index + 1}`}
+                aria-label={t("Слайд {n}", { n: index + 1 })}
                 className={`h-2 rounded-full transition-all duration-300 ${index === slide ? "w-8 bg-primary" : "w-2 bg-surface-variant hover:bg-outline"}`}
               />
             ))}
@@ -152,12 +161,12 @@ export default function Welcome() {
           <div className="relative z-20 px-4 md:px-0 flex flex-col items-center md:items-start text-center md:text-left mt-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high mb-2">
               <Icon name={current.badgeIcon} size={14} className={current.color} />
-              <span className={`text-label-sm uppercase tracking-wider ${current.color}`}>{current.badge}</span>
+              <span className={`text-label-sm uppercase tracking-wider ${current.color}`}>{t(current.badge)}</span>
             </div>
             <h1 className="font-serif text-headline-lg-mobile md:text-[52px] md:leading-[60px] font-bold tracking-tight px-2 md:px-0">
-              {current.title} <span className={`italic ${current.color}`}>{current.accent}</span>
+              {t(current.title)} <span className={`italic ${current.color}`}>{t(current.accent)}</span>
             </h1>
-            <p className="font-serif text-tertiary mt-2.5 md:mt-5 max-w-xs md:max-w-lg leading-relaxed text-[15px] md:text-[18px]">{current.text}</p>
+            <p className="font-serif text-tertiary mt-2.5 md:mt-5 max-w-xs md:max-w-lg leading-relaxed text-[15px] md:text-[18px]">{t(current.text)}</p>
 
             <div className="flex flex-col md:grid md:grid-cols-3 gap-2 md:gap-3 w-full max-w-xs md:max-w-none mt-6 md:mt-8 text-left">
               {FEATURES.map((feature) => (
@@ -166,8 +175,8 @@ export default function Welcome() {
                     <Icon name={feature.icon} size={18} className={feature.color} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-semibold">{feature.title}</p>
-                    <p className="text-[11px] text-tertiary truncate">{feature.text}</p>
+                    <p className="text-[13px] font-semibold">{t(feature.title)}</p>
+                    <p className="text-[11px] text-tertiary truncate">{t(feature.text)}</p>
                   </div>
                 </div>
               ))}
@@ -180,14 +189,14 @@ export default function Welcome() {
               onClick={markWelcomed}
               className="h-12 md:px-8 bg-primary text-on-primary text-label-lg rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-primary-container active:scale-[0.99]"
             >
-              Оғоз кардан <Icon name="arrow_forward" size={20} />
+              {t("Оғоз кардан")} <Icon name="arrow_forward" size={20} />
             </Link>
             <Link
               to="/login"
               onClick={markWelcomed}
               className="h-12 md:px-8 bg-surface-container-high text-secondary-fixed text-label-lg rounded-xl hover:bg-surface-bright flex items-center justify-center"
             >
-              Ворид шудан
+              {t("Ворид шудан")}
             </Link>
           </div>
         </div>

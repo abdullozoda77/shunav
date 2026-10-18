@@ -1,3 +1,5 @@
+import { translate } from "./translations.js";
+
 // All calls to the FastAPI backend. Vite sends /api/... to http://127.0.0.1:8002 (see vite.config.js).
 const API = "/api";
 
@@ -37,7 +39,7 @@ async function request(method, path, body) {
     // FastAPI sends {detail: "text"} or {detail: [{msg: "..."}]} for validation errors
     const detail = data?.detail;
     const message = Array.isArray(detail) ? detail.map((d) => d.msg).join(", ") : detail;
-    const error = new Error(message || "Хатогӣ рух дод");
+    const error = new Error(translate(message || "Хатогӣ рух дод")); // in the site's language when we know the message
     error.status = response.status;
     throw error;
   }
