@@ -36,7 +36,7 @@ MORE_BOOKS = [
          description='Саду як ғазали Мирзо Абдулқодири Бедил (нашри «Ирфон», 2008).' + RESTORED_NOTE),
     dict(title='Марги судхӯр', author='ayni', category='Наср',
          description='Қиссаи машҳури Садриддин Айнӣ (1937) дар бораи судхӯри хасис Қорӣ Ишкамба ва зиндагии '
-                     'Бухорои пеш аз инқилоб.' + RESTORED_NOTE),
+                     'Бухорои пеш аз инқилоб. Як саҳифаи аввали боби якум дар нусхаи сканшуда нест.'),
     dict(title='Мактаби кӯҳна', author='ayni', category='Наср',
          description='Қиссаи Садриддин Айнӣ (1934) дар бораи мактаби деҳаи кӯдакиаш: мактабдори бераҳм, фаллоқ, '
                      'бачагони шӯх ва падари доно, ки писарашро бо ҳисоби абҷад ва рақамҳо шинос мекунад.'),
@@ -51,7 +51,7 @@ NOTE = '\n\nМатн аз нашри тоҷикии китоб (kitobkhon.net) �
 WRAP = 64  # a prose line this long was cut by the page width; the next line goes on with it
 
 
-RESTORED = {'bedil_gazal', 'margi_sudkhur'}  # scans whose text lost the Tajik letters (see tajik_restore.py)
+RESTORED = {'bedil_gazal'}  # scans whose text lost the Tajik letters (see tajik_restore.py)
 _restorer = None
 
 
@@ -538,6 +538,7 @@ READERS = {
     'shohnoma': ('Шоҳнома. Ҷилди 1', read_shohnoma),
     'odina': ('Одина', lambda: read_prose('odina', 3)),
     'maktabi_kuhna': ('Мактаби кӯҳна', lambda: read_typed('maktabi_kuhna')),
+    'margi_sudkhur': ('Марги судхӯр', lambda: read_typed('margi_sudkhur')),
     'bedil_gazal': ('Саду як ғазал', read_bedil_gazal),
     'yoddoshtho4': ('Ёддоштҳо', lambda: read_prose('yoddoshtho4', 3, 'Қисми якум')),
     **{f'masnavi{n}': (f'Маснавии маънавӣ. Дафтари {word}', lambda n=n: read_masnavi(f'masnavi{n}'))
