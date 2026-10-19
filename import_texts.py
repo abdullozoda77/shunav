@@ -34,6 +34,9 @@ MORE_BOOKS = [
       for n, word in [('дуюм', 'дуюм'), ('сеюм', 'сеюм'), ('чаҳорум', 'чаҳорум'), ('панҷум', 'панҷум'), ('шашум', 'шашум')]],
     dict(title='Саду як ғазал', author='bedil', category='Ғазал',
          description='Саду як ғазали Мирзо Абдулқодири Бедил (нашри «Ирфон», 2008).' + RESTORED_NOTE),
+    dict(title='Рубоиёти Бедил', author='bedil', category='Рубоӣ',
+         description='Рубоиёти интихобии Мирзо Абдулқодири Бедил, ки бо тартиби ҳарфи қофия (аз «алиф» то «йо») '
+                     'ҷой дода шудаанд: андешаҳо дар бораи ҳастӣ, дил, ишқ, хирад ва ахлоқи инсон.'),
     dict(title='Марги судхӯр', author='ayni', category='Наср',
          description='Қиссаи машҳури Садриддин Айнӣ (1937) дар бораи судхӯри хасис Қорӣ Ишкамба ва зиндагии '
                      'Бухорои пеш аз инқилоб. Як саҳифаи аввали боби якум дар нусхаи сканшуда нест.'),
@@ -529,6 +532,34 @@ def read_typed(folder):
     return [(heading, f'◆ {heading}\n\n{body}') for heading, body in sections]
 
 
+def read_bedil_ruboiyot():
+    """Rubais typed page by page (data/texts/bedil_ruboiyot/NNN.txt), grouped under '◆ Ҳарфи …' (the rhyme letter).
+    A rubai that does not fit on its page goes on at the top of the next one; every letter is one chapter."""
+    import glob
+    lines = []
+    for f in sorted(glob.glob('data/texts/bedil_ruboiyot/[0-9]*.txt')):
+        lines += [line.strip() for line in open(f, encoding='utf-8')] + ['']
+    chapters, letter, rubais, current, number = [], None, [], [], 0
+    for line in lines + ['◆ end']:
+        if line.startswith('◆ '):
+            if letter and rubais:
+                chapters.append((letter, rubais))
+            letter, rubais, current = line[2:], [], []
+        elif line:
+            current.append(line)
+            if len(current) == 4:
+                rubais.append(current)
+                current = []
+    out = []
+    for letter, group in chapters:
+        texts = []
+        for rubai in group:
+            number += 1
+            texts.append(f'◆ Рубоии {number}\n\n' + '\n'.join(rubai))
+        out.append((letter, '\n\n\n'.join(texts)))
+    return out
+
+
 READERS = {
     'buston': ('Бӯстон', read_buston),
     'hofiz': ('Девони ғазалиёт', read_hofiz),
@@ -540,6 +571,7 @@ READERS = {
     'maktabi_kuhna': ('Мактаби кӯҳна', lambda: read_typed('maktabi_kuhna')),
     'margi_sudkhur': ('Марги судхӯр', lambda: read_typed('margi_sudkhur')),
     'bedil_gazal': ('Саду як ғазал', read_bedil_gazal),
+    'bedil_ruboiyot': ('Рубоиёти Бедил', read_bedil_ruboiyot),
     'yoddoshtho4': ('Ёддоштҳо', lambda: read_prose('yoddoshtho4', 3, 'Қисми якум')),
     **{f'masnavi{n}': (f'Маснавии маънавӣ. Дафтари {word}', lambda n=n: read_masnavi(f'masnavi{n}'))
        for n, word in [(2, 'дуюм'), (3, 'сеюм'), (4, 'чаҳорум'), (5, 'панҷум'), (6, 'шашум')]},
