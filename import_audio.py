@@ -3,7 +3,8 @@
 The notebook names every file by the chapter id: 12.mp3, 13.mp3 ... Download the "audio" folder from
 Google Drive (shunav_tts/audio), then:
 
-    .venv\\Scripts\\python import_audio.py "C:\\Users\\me\\Downloads\\audio"
+    .venv\\Scripts\\python import_audio.py "C:\\Users\\me\\Downloads\\audio"          # made with ENGINE = 'chatterbox'
+    .venv\\Scripts\\python import_audio.py "C:\\Users\\me\\Downloads\\audio" mms      # made with ENGINE = 'mms'
 
 Each file is copied to media/audio/, its real length is read, and the chapter is marked "done" with the
 natural voice as the narrator of its book. Running it again replaces the audio of those chapters.
