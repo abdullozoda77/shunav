@@ -30,8 +30,11 @@ from database import SessionLocal
 from models import Book, Chapter, Narrator
 
 MODEL = 'facebook/mms-tts-tgk'
-SPEAKING_RATE = 0.9   # a little slower than normal, so every word is clear
-NOISE_SCALE = 0.55    # less "randomness" in the voice -> cleaner sound (default 0.667)
+SPEAKING_RATE = 0.75          # slower than normal: a calm reading, every word clear
+NOISE_SCALE = 0.33            # little "randomness" in the voice -> the same steady voice (default 0.667)
+NOISE_SCALE_DURATION = 0.4    # steady rhythm (default 0.8)
+VOICE_SEED = 7                # the same seed before every piece = the same voice in every sentence
+LOUDNESS = 0.08               # every piece is brought to this loudness (RMS), so none sounds louder
 MP3_KBPS = 48
 
 # pauses in seconds
@@ -118,14 +121,18 @@ class Voice:
         self.model = VitsModel.from_pretrained(MODEL)
         self.model.speaking_rate = SPEAKING_RATE
         self.model.noise_scale = NOISE_SCALE
+        self.model.noise_scale_duration = NOISE_SCALE_DURATION
         self.rate = self.model.config.sampling_rate
         torch.manual_seed(7)
         torch.set_num_threads(os.cpu_count() or 1)   # torch uses only half the cores by default
 
     def say(self, words: str) -> np.ndarray:
         inputs = self.tokenizer(words, return_tensors='pt')
+        torch.manual_seed(VOICE_SEED)
         with torch.no_grad():
-            return self.model(**inputs).waveform[0].numpy()
+            wav = self.model(**inputs).waveform[0].numpy()
+        rms = np.sqrt(np.mean(wav ** 2)) if len(wav) else 0
+        return wav * (LOUDNESS / rms) if rms > 1e-4 else wav
 
     def read(self, pieces: list[tuple[str, float]]) -> np.ndarray:
         sound = []
@@ -133,7 +140,7 @@ class Voice:
             sound.append(self.say(words))
             sound.append(np.zeros(int(pause * self.rate), dtype=np.float32))
         audio = np.concatenate(sound)
-        return audio / max(np.abs(audio).max(), 1e-6) * 0.9   # same loudness in every chapter
+        return np.clip(audio / max(np.abs(audio).max(), 1e-6) * 0.9, -1, 1)   # same loudness in every chapter
 
     def save_mp3(self, audio: np.ndarray, path: str):
         encoder = lameenc.Encoder()

@@ -19,15 +19,18 @@ from config import MEDIA_DIR
 from database import SessionLocal
 from models import Chapter, Narrator
 
-MODEL = 'Tohirju/chatterbox-mtl-tajik'
-NARRATOR = 'Овози табиӣ (AI)'
+ENGINES = {  # the engine chosen in the notebook -> (model, narrator name on the site)
+    'chatterbox': ('Tohirju/chatterbox-mtl-tajik', 'Овози табиӣ (AI)'),
+    'mms': ('facebook/mms-tts-tgk', 'Овози AI (тоҷикӣ)'),
+}
 
 
-def main(folder: str):
+def main(folder: str, engine: str = 'chatterbox'):
+    model, name = ENGINES[engine]
     db = SessionLocal()
-    narrator = db.query(Narrator).filter(Narrator.tts_model == MODEL).first()
+    narrator = db.query(Narrator).filter(Narrator.tts_model == model).first()
     if narrator is None:
-        narrator = Narrator(name=NARRATOR, kind='ai', tts_model=MODEL)
+        narrator = Narrator(name=name, kind='ai', tts_model=model)
         db.add(narrator)
 
     os.makedirs(f'{MEDIA_DIR}/audio', exist_ok=True)
@@ -55,6 +58,6 @@ def main(folder: str):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        raise SystemExit('Usage: import_audio.py <folder with 12.mp3, 13.mp3 ...>')
-    main(sys.argv[1])
+    if len(sys.argv) not in (2, 3) or (len(sys.argv) == 3 and sys.argv[2] not in ENGINES):
+        raise SystemExit('Usage: import_audio.py <folder with 12.mp3, 13.mp3 ...> [chatterbox|mms]')
+    main(*sys.argv[1:])
